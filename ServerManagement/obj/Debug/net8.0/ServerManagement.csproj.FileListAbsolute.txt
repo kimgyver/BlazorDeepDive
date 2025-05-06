@@ -27,3 +27,4 @@
 /Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/obj/Debug/net8.0/ServerManagement.pdb
 /Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/obj/Debug/net8.0/ServerManagement.genruntimeconfig.cache
 /Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/obj/Debug/net8.0/ref/ServerManagement.dll
+/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/obj/Debug/net8.0/ServerManagement.sourcelink.json
