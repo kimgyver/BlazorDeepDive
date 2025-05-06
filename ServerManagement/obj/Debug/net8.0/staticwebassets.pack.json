@@ -1,0 +1,61 @@
+{
+  "Files": [
+    {
+      "Id": "/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/obj/Debug/net8.0/scopedcss/projectbundle/ServerManagement.bundle.scp.css",
+      "PackagePath": "staticwebassets/ServerManagement.bundle.scp.css"
+    },
+    {
+      "Id": "/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/wwwroot/app.css",
+      "PackagePath": "staticwebassets/app.css"
+    },
+    {
+      "Id": "/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/wwwroot/bootstrap/bootstrap.min.css",
+      "PackagePath": "staticwebassets/bootstrap/bootstrap.min.css"
+    },
+    {
+      "Id": "/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/wwwroot/bootstrap/bootstrap.min.css.map",
+      "PackagePath": "staticwebassets/bootstrap/bootstrap.min.css.map"
+    },
+    {
+      "Id": "/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/wwwroot/favicon.png",
+      "PackagePath": "staticwebassets/favicon.png"
+    },
+    {
+      "Id": "/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/wwwroot/images/Calgary.png",
+      "PackagePath": "staticwebassets/images/Calgary.png"
+    },
+    {
+      "Id": "/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/wwwroot/images/Halifax.png",
+      "PackagePath": "staticwebassets/images/Halifax.png"
+    },
+    {
+      "Id": "/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/wwwroot/images/Ottawa.png",
+      "PackagePath": "staticwebassets/images/Ottawa.png"
+    },
+    {
+      "Id": "/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/wwwroot/images/montreal.png",
+      "PackagePath": "staticwebassets/images/montreal.png"
+    },
+    {
+      "Id": "/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/wwwroot/images/toronto.png",
+      "PackagePath": "staticwebassets/images/toronto.png"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.ServerManagement.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.build.ServerManagement.props",
+      "PackagePath": "build\\ServerManagement.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildMultiTargeting.ServerManagement.props",
+      "PackagePath": "buildMultiTargeting\\ServerManagement.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildTransitive.ServerManagement.props",
+      "PackagePath": "buildTransitive\\ServerManagement.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
