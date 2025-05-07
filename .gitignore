@@ -1,0 +1,43 @@
+## Ignore build results
+bin/
+obj/
+out/
+
+## User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## ASP.NET Core / Blazor
+wwwroot/dist/
+wwwroot/node_modules/
+
+## Visual Studio Code
+.vscode/
+
+## Rider / JetBrains
+.idea/
+
+## Mac files
+.DS_Store
+
+## Logs
+*.log
+
+## Package directories
+node_modules/
+packages/
+bower_components/
+
+## Dotnet-specific
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Others
+*.db
+*.sqlite
+.env
+.env.*
+secrets.json
