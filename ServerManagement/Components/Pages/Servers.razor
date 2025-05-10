@@ -1,6 +1,8 @@
 @page "/servers"
 @inject NavigationManager NavigationManager
 
+@rendermode InteractiveServer
+
 <h3>Servers</h3>
 <br/>
 <br/>
@@ -8,25 +10,35 @@
   <div class="row w-75">
       @foreach(var city in cities)
       {
-        
         <div class="col">
-          <div class="card" style="width: 8rem;">
+          <div class="card @(selectedCity.Equals(city, StringComparison.OrdinalIgnoreCase) ? "border-primary" : "")" style="width: 8rem;">
             <img class="card-img-top" src="@($"/images/{city}.png")" alt="...">
             <div class="card-body">
-               <button type="button" class="btn btn-primary">@city</button>
+               <button type="button" class="btn btn-primary" @onclick="@(() => SelectCity(city))">@city</button>
             </div>
           </div>
         </div>
       }
   </div>
 </div>
+@selectedCity
 
 <br/>
 
+<div class="input-group mb-3">
+  <input type="text" class="form-control" placeholder="Search Servers" 
+    @bind-value="serverFilter"
+    @bind-value:event="oninput"
+  >
+  <button class="btn btn-outline-secondary" type="button" id="button-search" @onclick="HandleSearch">Search</button>
+</div>
+@serverFilter
+<br />
+
 <ul>
-  @foreach (var server in servers)
-  {
-    <li>@server.Name in @server.City is 
+  <Virtualize Items="this.servers" Context="server">
+    <li @key="server.ServerId">
+      @server.Name in @server.City is 
       <span style="color: @(server.IsOnline ? "green" : "red")">
         @(server.IsOnline ? "online": "offline")
       </span>
@@ -40,7 +52,7 @@
         <button class="btn btn-primary" type="submit">Delete</button>
       </EditForm>
     </li>
-  }
+  </Virtualize>
 </ul>
 
 <p>
@@ -51,6 +63,18 @@
   private List<Server> servers= ServersRepository.GetServersByCity("Toronto");
   private List<String> cities = CitiesRepository.GetCities();
 
+  private string selectedCity = "Toronto";
+
+  private string _serverFilter = "";
+  private string serverFilter { 
+    get => _serverFilter; 
+    set
+    {
+      _serverFilter = value;
+      this.servers = ServersRepository.SearchServers(this.serverFilter);
+    }
+  }
+
   private void DeleteServer(int serverId)
   {
     if (serverId > 0)
@@ -58,5 +82,31 @@
       ServersRepository.DeleteServer(serverId);
       NavigationManager.NavigateTo("/servers");
     }
+  }
+
+  private void SelectCity(string city)
+  {
+    this.serverFilter = string.Empty;
+    this.selectedCity = city;
+    this.servers = ServersRepository.GetServersByCity(this.selectedCity);
+
+    if (this.selectedCity.Equals("Halifax"))
+    {
+      for (int i = 16; i <2000; i ++)
+      {
+        servers.Add(new Server { ServerId = i, Name = $"Server{i}", City="Halifax" });
+      }
+    }
+  }
+
+  @* private void HandleServerFilterChange(ChangeEventArgs args)
+  {
+    serverFilter = args.Value?.ToString() ?? string.Empty;
+  } *@
+
+  private void HandleSearch()
+  {
+    this.servers = ServersRepository.SearchServers(this.serverFilter);
+    this.selectedCity = string.Empty;
   }
 }
