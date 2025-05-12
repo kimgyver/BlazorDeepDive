@@ -12,37 +12,30 @@
     <DataAnnotationsValidator></DataAnnotationsValidator>
     <ValidationSummary></ValidationSummary>
     <InputNumber @bind-Value="server.ServerId" hidden />
-    <div class="row mb-3">
-      <div class="col-2">
-        <label class="col-form-label">Name</label>
-      </div>
-      <div class="col-6">
-        <InputText @bind-Value="server.Name" class="form-control" />
-      </div>
-      <div class="col">
-        <ValidationMessage For="() => server.Name" />
-      </div>
-    </div>
-    <div class="row mb-3">
-      <div class="col-2">
-        <label class="col-form-label">City</label>
-      </div>
-      <div class="col-6">
-        <InputText @bind-Value="server.City" class="form-control" />
-      </div>
-      <div class="col">
-        <ValidationMessage For="() => server.City" />
-      </div>
-    </div>
 
-    <div class="row mb-3">
-      <div class="col-2">
-        <label class="col-form-label">Online</label>
-      </div>
-      <div class="col-6">
+    <FieldComponent Label="Name">
+      <Control>
+        <InputText @bind-Value="server.Name" class="form-control" />
+      </Control>
+      <ValidationControl>
+        <ValidationMessage For="() => server.Name" />
+      </ValidationControl>
+    </FieldComponent>
+
+    <FieldComponent Label="City">
+      <Control>
+        <InputText @bind-Value="server.City" class="form-control" />
+      </Control>
+      <ValidationControl>
+        <ValidationMessage For="() => server.City" />
+      </ValidationControl>
+    </FieldComponent>
+
+    <FieldComponent Label="Online2">
+      <Control>
         <InputCheckbox @bind-Value="server.IsOnline" class="form-check-input" />
-      </div>
-    </div>
+      </Control>
+    </FieldComponent>
 
     <br/>
     <button class="btn btn-primary" type="submit">Update</button>

@@ -28,3 +28,5 @@
 /Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/obj/Debug/net8.0/ServerManagement.genruntimeconfig.cache
 /Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/obj/Debug/net8.0/ref/ServerManagement.dll
 /Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/obj/Debug/net8.0/ServerManagement.sourcelink.json
+/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/obj/Debug/net8.0/scopedcss/Components/Pages/EditServer.razor.rz.scp.css
+/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/obj/Debug/net8.0/scopedcss/Components/Controls/SearchBarComponent.razor.rz.scp.css

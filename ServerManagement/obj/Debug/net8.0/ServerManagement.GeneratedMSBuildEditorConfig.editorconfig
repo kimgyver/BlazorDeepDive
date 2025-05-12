@@ -22,8 +22,28 @@ build_property._RazorSourceGeneratorDebug =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9BcHAucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/Components/Controls/CityComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db250cm9scy9DaXR5Q29tcG9uZW50LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/Components/Controls/CityListComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db250cm9scy9DaXR5TGlzdENvbXBvbmVudC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/Components/Controls/Generic/FieldComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db250cm9scy9HZW5lcmljL0ZpZWxkQ29tcG9uZW50LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/Components/Controls/Generic/RepeaterComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db250cm9scy9HZW5lcmljL1JlcGVhdGVyQ29tcG9uZW50LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/Components/Controls/ServerComponent.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db250cm9scy9TZXJ2ZXJDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/Components/Controls/ServerListComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db250cm9scy9TZXJ2ZXJMaXN0Q29tcG9uZW50LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/Components/Pages/AddServer.razor]
@@ -32,10 +52,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/Components/Pages/Counter.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Db3VudGVyLnJhem9y
-build_metadata.AdditionalFiles.CssScope = 
-
-[/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/Components/Pages/EditServer.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FZGl0U2VydmVyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/Components/Pages/Error.razor]
@@ -62,6 +78,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9fSW1wb3J0cy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/Components/Controls/SearchBarComponent.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Db250cm9scy9TZWFyY2hCYXJDb21wb25lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-yj1s9dz156
+
 [/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/Components/Layout/MainLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTWFpbkxheW91dC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-ldwxlsun36
@@ -69,3 +89,7 @@ build_metadata.AdditionalFiles.CssScope = b-ldwxlsun36
 [/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/Components/Layout/NavMenu.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTmF2TWVudS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = b-sai5t6an4w
+
+[/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/Components/Pages/EditServer.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FZGl0U2VydmVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-w7uhgcqi6g

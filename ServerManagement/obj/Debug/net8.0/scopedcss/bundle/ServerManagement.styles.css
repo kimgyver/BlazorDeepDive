@@ -1,3 +1,7 @@
+/* _content/ServerManagement/Components/Controls/SearchBarComponent.razor.rz.scp.css */
+.input-width[b-yj1s9dz156] {
+  width: 30%;
+}
 /* _content/ServerManagement/Components/Layout/MainLayout.razor.rz.scp.css */
 .page[b-ldwxlsun36] {
     position: relative;
@@ -200,4 +204,8 @@ main[b-ldwxlsun36] {
         height: calc(100vh - 3.5rem);
         overflow-y: auto;
     }
+}
+/* _content/ServerManagement/Components/Pages/EditServer.razor.rz.scp.css */
+.input-width[b-w7uhgcqi6g] {
+  width: 50%;
 }

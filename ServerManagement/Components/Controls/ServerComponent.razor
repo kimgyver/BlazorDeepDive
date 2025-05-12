@@ -1,56 +1,78 @@
-@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
 
-
-@if (server is not null)
+@if (Server is not null)
 {
-    <div style="@($"color: {(server.IsOnline ? "green" : "red")}")">
-      @server.Name is in @server.City that is @(server.IsOnline ? "online": "offline")
-      &nbsp;;
-      <button type="button" class="btn btn-primary" @onclick="ChangeStatus">Turn On/Off</button>
-    </div>
+    <li @key="Server.ServerId" style="background-color: @GetBackgroundColour()">
+      @Server.Name in @Server.City is 
+      <span style="color: @(Server.IsOnline ? "green" : "red")">
+        @(Server.IsOnline ? "online": "offline")
+      </span>
+      &nbsp;
+
+      @if (Server.IsOnline)
+      {
+        <button type="button" class="btn btn-outline-danger"
+          @onclick="@(() => Server.IsOnline = false )">Turn Off</button>
+      }
+      else
+      {
+        <button type="button" class="btn btn-outline-success"
+           @onclick="@(() => Server.IsOnline = true )">Turn on</button>
+      }
+      
+      &nbsp;
+
+      @if (Server.IsOnline)
+      {
+        Random random = new Random();
+        int randomNumber = random.Next(0, 500);
+        <text>@randomNumber</text>
+      }
+      else
+      {
+        <text>N/A</text>
+      }
+
+      <a href="/servers/@Server.ServerId" class="btn btn-link">Edit</a>
+      &nbsp;
+      <EditForm
+        Model="Server"
+        FormName="@($"form-server-{Server.ServerId}")"
+        OnValidSubmit="@(() => DeleteServer(Server.ServerId))">
+        <button class="btn btn-primary" type="submit">Delete</button>
+      </EditForm>
+    </li>
 }
-
-@* @if (server is not null)
-{
-  <EditForm Enhance="true" Model="server" FormName="serverComponentForm" OnSubmit="ChangeServerStatus">
-    <InputNumber @bind-Value="server.ServerId" hidden />
-    <InputText @bind-Value="server.Name" hidden />
-    <InputText @bind-Value="server.City" hidden />
-    <InputCheckbox @bind-Value="server.IsOnline" hidden />
-
-    <div style="@($"color: {(server.IsOnline ? "green" : "red")}")">
-      @server.Name is in @server.City that is @(server.IsOnline ? "online": "offline")
-      &nbsp;;
-      <button type="submit" class="btn btn-primary">Turn On/Off</button>
-    </div>
-  </EditForm>
-} *@
 
 
 @code {
-  private Server server { get; set; } = new Server { Name = "Server 1", City = "Toronto"};
+  [Parameter]
+  public Server? Server { get; set; }
 
-  private void ChangeStatus()
+  [CascadingParameter(Name = "SelectedCity")]
+  public string? SelectedCity { get; set; }
+
+  private void DeleteServer(int serverId)
   {
-    if (server is not null)
+    if (serverId > 0)
     {
-      server.IsOnline = !server.IsOnline;
+      ServersRepository.DeleteServer(serverId);
+      @* servers= ServersRepository.GetServersByCity("Toronto"); *@
+      NavigationManager.NavigateTo("/servers", true);
     }
   }
 
-  @* [SupplyParameterFromForm]
-  private Server? server { get; set; }
-
-  protected override void OnParametersSet()
+  private string GetBackgroundColour()
   {
-    server ??= new Server { Name = "Server 1", City = "Toronto"};
-  }
+    if (SelectedCity is null) return "white";
 
-  private void ChangeServerStatus()
-  {
-    if (server is not null)
+    switch (this.SelectedCity)
     {
-      server.IsOnline = !server.IsOnline;
+      case "Toronto": return "powderblue";
+      case "Montreal": return "lightgray";
+      case "Ottawa": return "palegreen";
+      case "Calgary": return "pink";
+      default: return "white";
     }
-  } *@
+  }
 }
