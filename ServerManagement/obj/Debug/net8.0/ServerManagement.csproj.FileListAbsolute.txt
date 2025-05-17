@@ -30,3 +30,15 @@
 /Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/obj/Debug/net8.0/ServerManagement.sourcelink.json
 /Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/obj/Debug/net8.0/scopedcss/Components/Pages/EditServer.razor.rz.scp.css
 /Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/obj/Debug/net8.0/scopedcss/Components/Controls/SearchBarComponent.razor.rz.scp.css
+/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/obj/Debug/net8.0/ServerManagement.csproj.AssemblyReference.cache
+/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/bin/Debug/net8.0/Microsoft.AspNetCore.Authorization.dll
+/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/bin/Debug/net8.0/Microsoft.AspNetCore.Components.dll
+/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/bin/Debug/net8.0/Microsoft.AspNetCore.Components.Forms.dll
+/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/bin/Debug/net8.0/Microsoft.AspNetCore.Components.QuickGrid.dll
+/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/bin/Debug/net8.0/Microsoft.AspNetCore.Components.Web.dll
+/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/bin/Debug/net8.0/Microsoft.AspNetCore.Metadata.dll
+/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/bin/Debug/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/bin/Debug/net8.0/Microsoft.Extensions.Logging.Abstractions.dll
+/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/bin/Debug/net8.0/Microsoft.Extensions.Options.dll
+/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/bin/Debug/net8.0/Microsoft.JSInterop.dll
+/Users/jinyoungkim/net-repo/BlazorDeepDive/ServerManagement/obj/Debug/net8.0/ServerMa.F4254011.Up2Date

@@ -1,13 +1,15 @@
-@page "/servers/{id:int}"
+@page "/server/{id:int?}"
 @inject NavigationManager NavigationManager
-@inject IJSRuntime JSRuntime
 @using System.Text.Json
 
-<NavigationLock 
-  OnBeforeInternalNavigation="OnBeforeInternalNavigation"
-  ConfirmExternalNavigation="true" />
-
-<h3>Edit Server</h3>
+@if (@Id.HasValue)
+{
+  <h3>Edit Server</h3>
+}
+else
+{
+  <h3>Add Server</h3>
+}
 <br/>
 <br/>
 
@@ -16,7 +18,11 @@
   <EditForm Model="server" FormName="formServer" OnValidSubmit="Submit">
     <DataAnnotationsValidator></DataAnnotationsValidator>
     <ValidationSummary></ValidationSummary>
-    <InputNumber @bind-Value="server.ServerId" hidden />
+
+    @if (server.ServerId > 0)
+    {
+      <InputNumber @bind-Value="server.ServerId" hidden />
+    }
 
     <FieldComponent Label="Name">
       <Control>
@@ -43,23 +49,40 @@
     </FieldComponent>
 
     <br/>
-    <button class="btn btn-primary" type="submit">Update</button>
+    @if (server.ServerId > 0)
+    {
+      <button class="btn btn-primary" type="submit">Update</button>
+    }
+    else
+    {
+      <button class="btn btn-primary" type="submit">Save</button>
+    }
+    &nbsp;
+    <a href="/servers" class="btn btn-primary">Close</a>
   </EditForm>
 }
-<br/>
-<a href="/servers" class="btn btn-primary">Close</a>
-
 
 @code {
   [Parameter]
-  public int Id { get; set; }
+  public int? Id { get; set; }
 
-  [SupplyParameterFromForm(FormName = "formServer")]
-  private Server? server {get; set;}
+  [SupplyParameterFromQuery]
+  public string? City { get; set; }
+
+  [SupplyParameterFromForm]
+  private Server? server { get; set; }
 
   protected override void OnParametersSet()
   {
-      server ??= ServersRepository.GetServerById(this.Id);
+    if (this.Id.HasValue)
+      server ??= ServersRepository.GetServerById(this.Id.Value);
+    else
+      server ??= new Server() { IsOnline = false };
+
+    if (server is not null && !string.IsNullOrEmpty(this.City))
+    {
+      server.City = this.City;
+    }
   }
 
   private void Submit()
@@ -69,17 +92,11 @@
 
     if (server is not null)
     {
-      ServersRepository.UpdateServer(server.ServerId, server);
+      if (this.Id.HasValue)
+        ServersRepository.UpdateServer(server.ServerId, server);
+      else
+        ServersRepository.AddServer(server);
     }
     NavigationManager.NavigateTo($"/servers/back_from/{this.server?.City}");
   }
-
-  private async Task OnBeforeInternalNavigation(LocationChangingContext context)
-  {
-    var isConfirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to leave this page?");
-    if (!isConfirmed)
-    {
-      context.PreventNavigation();
-    }
-  }
-} 
+}
