@@ -1,5 +1,6 @@
 @page "/server/{id:int?}"
 @inject NavigationManager NavigationManager
+@inject IServersEfCoreRepository ServersEfCoreRepository
 @using System.Text.Json
 
 @if (@Id.HasValue)
@@ -75,7 +76,7 @@ else
   protected override void OnParametersSet()
   {
     if (this.Id.HasValue)
-      server ??= ServersRepository.GetServerById(this.Id.Value);
+      server ??= ServersEfCoreRepository.GetServerById(this.Id.Value);
     else
       server ??= new Server() { IsOnline = false };
 
@@ -93,9 +94,9 @@ else
     if (server is not null)
     {
       if (this.Id.HasValue)
-        ServersRepository.UpdateServer(server.ServerId, server);
+        ServersEfCoreRepository.UpdateServer(server.ServerId, server);
       else
-        ServersRepository.AddServer(server);
+        ServersEfCoreRepository.AddServer(server);
     }
     NavigationManager.NavigateTo($"/servers/back_from/{this.server?.City}");
   }

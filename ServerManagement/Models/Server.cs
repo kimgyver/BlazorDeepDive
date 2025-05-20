@@ -6,9 +6,9 @@ public class Server
 {
   public Server()
   {
-    Random random = new Random();
-    int randomNumber = random.Next(0, 2);
-    IsOnline = randomNumber == 0 ? false : true;
+    // Random random = new Random();
+    // int randomNumber = random.Next(0, 2);
+    // IsOnline = randomNumber == 0 ? false : true;
   }
 
   public int ServerId { get; set; }

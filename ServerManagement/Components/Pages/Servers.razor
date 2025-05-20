@@ -37,7 +37,7 @@
 
   private void HandleSearch()
   {
-    @* this.servers = ServersRepository.SearchServers(this.serverFilter); *@
+    @* this.servers = ServersEfCoreRepository.SearchServers(this.serverFilter); *@
     @* this.selectedCity = string.Empty; *@
   }
 
@@ -50,7 +50,7 @@
 
   private void HandleSearchServer(string searchFilter)
   {
-    @* this.servers = ServersRepository.SearchServers(searchFilter); *@
+    @* this.servers = ServersEfCoreRepository.SearchServers(searchFilter); *@
     this.searchFilter = searchFilter;
     this.cityListComponent?.ClearSelection();
   }

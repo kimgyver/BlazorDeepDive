@@ -1,4 +1,5 @@
 @inject NavigationManager NavigationManager
+@inject IServersEfCoreRepository ServersEfCoreRepository
 
 @if (Server is not null)
 {
@@ -29,7 +30,7 @@
             {
                 <button type="button"
                         class="btn btn-outline-danger"
-                        @onclick="@(()=> {Server.IsOnline = false;})">
+                        @onclick="@(()=> { SetServerStatus(false); })">
                     Turn Off
                 </button>
             }
@@ -37,7 +38,7 @@
             {
                 <button type="button"
                         class="btn btn-outline-success"
-                        @onclick="@(()=> {Server.IsOnline = true;})">
+                        @onclick="@(()=> { SetServerStatus(true); })">
                     Turn On
                 </button>
             }
@@ -66,8 +67,8 @@
   {
     if (serverId > 0)
     {
-      ServersRepository.DeleteServer(serverId);
-      @* servers= ServersRepository.GetServersByCity("Toronto"); *@
+      ServersEfCoreRepository.DeleteServer(serverId);
+      @* servers= ServersEfCoreRepository.GetServersByCity("Toronto"); *@
       NavigationManager.NavigateTo("/servers", true);
     }
   }
@@ -84,5 +85,12 @@
       case "Calgary": return "pink";
       default: return "white";
     }
+  }
+
+  private void SetServerStatus(bool status)
+  {
+    if (this.Server is null) return;
+    this.Server.IsOnline = status;
+    ServersEfCoreRepository.UpdateServer(this.Server.ServerId, Server);
   }
 }

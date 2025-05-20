@@ -1,3 +1,5 @@
+@inject IServersEfCoreRepository ServersEfCoreRepository
+
 <table class="table table-striped">
     <RepeaterComponent Items="servers">
         <Header>
@@ -38,8 +40,8 @@
   protected override void OnParametersSet()
   {
     if (string.IsNullOrWhiteSpace(this.SearchFilter))
-      servers = ServersRepository.GetServersByCity(CityName ?? "Toronto");
+      servers = ServersEfCoreRepository.GetServersByCity(CityName ?? "Toronto");
     else
-      servers = ServersRepository.SearchServers(this.SearchFilter);
+      servers = ServersEfCoreRepository.SearchServers(this.SearchFilter);
   }
 }
