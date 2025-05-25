@@ -7,6 +7,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerManagement", "ServerM
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToDoApp", "ToDoApp\ToDoApp.csproj", "{CA8AE12A-76BD-4A4A-8717-F045EB4D967E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WebAssemblyDemo", "WebAssemblyDemo", "{2052A9C9-85BE-4E13-A974-A7AF74C278EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAssemblyDemo", "WebAssemblyDemo\WebAssemblyDemo\WebAssemblyDemo.csproj", "{3C75F6F7-9317-447A-B9CC-27468028D0FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAssemblyDemo.Client", "WebAssemblyDemo\WebAssemblyDemo.Client\WebAssemblyDemo.Client.csproj", "{C5246C79-7CA2-4D8C-8CBB-3594DB2354D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +30,17 @@ Global
 		{CA8AE12A-76BD-4A4A-8717-F045EB4D967E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA8AE12A-76BD-4A4A-8717-F045EB4D967E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA8AE12A-76BD-4A4A-8717-F045EB4D967E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C75F6F7-9317-447A-B9CC-27468028D0FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C75F6F7-9317-447A-B9CC-27468028D0FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C75F6F7-9317-447A-B9CC-27468028D0FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C75F6F7-9317-447A-B9CC-27468028D0FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5246C79-7CA2-4D8C-8CBB-3594DB2354D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5246C79-7CA2-4D8C-8CBB-3594DB2354D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5246C79-7CA2-4D8C-8CBB-3594DB2354D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5246C79-7CA2-4D8C-8CBB-3594DB2354D8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3C75F6F7-9317-447A-B9CC-27468028D0FD} = {2052A9C9-85BE-4E13-A974-A7AF74C278EC}
+		{C5246C79-7CA2-4D8C-8CBB-3594DB2354D8} = {2052A9C9-85BE-4E13-A974-A7AF74C278EC}
 	EndGlobalSection
 EndGlobal
