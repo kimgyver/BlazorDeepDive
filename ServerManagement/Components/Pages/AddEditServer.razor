@@ -1,7 +1,13 @@
 @page "/server/{id:int?}"
 @inject NavigationManager NavigationManager
 @inject IServersEfCoreRepository ServersEfCoreRepository
+@inject IJSRuntime JSRuntime
 @using System.Text.Json
+@using Microsoft.AspNetCore.Components.Forms
+
+<NavigationLock 
+  OnBeforeInternalNavigation="OnBeforeInternalNavigation"
+  ConfirmExternalNavigation="true" />
 
 @if (@Id.HasValue)
 {
@@ -16,7 +22,7 @@ else
 
 @if (server is not null)
 {
-  <EditForm Model="server" FormName="formServer" OnValidSubmit="Submit">
+  <EditForm EditContext="@editContext" FormName="formServer" OnValidSubmit="Submit">
     <DataAnnotationsValidator></DataAnnotationsValidator>
     <ValidationSummary></ValidationSummary>
 
@@ -70,8 +76,10 @@ else
   [SupplyParameterFromQuery]
   public string? City { get; set; }
 
-  [SupplyParameterFromForm]
   private Server? server { get; set; }
+
+  private EditContext? editContext;
+  private bool hasUnsavedChanges = false;
 
   protected override void OnParametersSet()
   {
@@ -84,6 +92,35 @@ else
     {
       server.City = this.City;
     }
+
+    if (server is not null)
+    {
+      if (editContext == null || editContext.Model != server)
+      {
+        if (editContext != null)
+        {
+          editContext.OnFieldChanged -= HandleFieldChanged;
+        }
+        editContext = new EditContext(server);
+        editContext.OnFieldChanged += HandleFieldChanged;
+        hasUnsavedChanges = false;
+      }
+    }
+  }
+
+  private void HandleFieldChanged(object? sender, FieldChangedEventArgs e)
+  {
+    hasUnsavedChanges = true;
+  }
+
+  private async Task OnBeforeInternalNavigation(LocationChangingContext context)
+  {
+    if (!hasUnsavedChanges)
+      return;
+
+    var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "There are unsaved changes. Do you really want to leave?");
+    if (!confirmed)
+      context.PreventNavigation();
   }
 
   private void Submit()
@@ -97,7 +134,17 @@ else
         ServersEfCoreRepository.UpdateServer(server.ServerId, server);
       else
         ServersEfCoreRepository.AddServer(server);
+
+      hasUnsavedChanges = false;
     }
     NavigationManager.NavigateTo($"/servers/back_from/{this.server?.City}");
+  }
+
+  public void Dispose()
+  {
+    if (editContext != null)
+    {
+      editContext.OnFieldChanged -= HandleFieldChanged;
+    }
   }
 }
