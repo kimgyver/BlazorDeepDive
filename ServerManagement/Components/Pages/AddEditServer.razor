@@ -65,7 +65,7 @@ else
       <button class="btn btn-primary" type="submit">Save</button>
     }
     &nbsp;
-    <a href="/servers" class="btn btn-primary">Close</a>
+    <a href="@((string.IsNullOrEmpty(ReturnUrl) ? "/servers" : ReturnUrl))" class="btn btn-primary">Close</a>
   </EditForm>
 }
 
@@ -75,6 +75,9 @@ else
 
   [SupplyParameterFromQuery]
   public string? City { get; set; }
+
+  [SupplyParameterFromQuery]
+  public string? ReturnUrl { get; set; }
 
   private Server? server { get; set; }
 
@@ -137,7 +140,9 @@ else
 
       hasUnsavedChanges = false;
     }
-    NavigationManager.NavigateTo($"/servers/back_from/{this.server?.City}");
+    // ReturnUrl이 있으면 그리로, 없으면 기존대로
+    var target = string.IsNullOrEmpty(ReturnUrl) ? $"/servers/back_from/{this.server?.City}" : ReturnUrl;
+    NavigationManager.NavigateTo(target);
   }
 
   public void Dispose()

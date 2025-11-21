@@ -58,7 +58,7 @@
             }
         </TemplateColumn>
         <TemplateColumn>
-            <a href="/servers/@context.ServerId" class="btn btn-outline-primary">Edit</a>
+            <a href="/server/@context.ServerId?ReturnUrl=/quickgrid" class="btn btn-outline-primary">Edit</a>
         </TemplateColumn>
         <TemplateColumn>
             <ChildContent Context="server">
@@ -84,6 +84,7 @@
         if (firstRender)
         {
             servers = ServersEfCoreRepository.GetServers();
+            StateHasChanged();
         }
     }
 
