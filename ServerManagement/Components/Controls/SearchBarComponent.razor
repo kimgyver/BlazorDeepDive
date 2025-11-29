@@ -1,11 +1,22 @@
-<div class="input-group mb-3 input-width" @attributes=OtherAttributes>
+@inject IServerSuggestionRepository ServerSuggestionRepository
+
+<div class="input-group mb-3 input-width" style="position:relative;" @attributes=OtherAttributes>
   <input type="text"
        class="form-control"
        placeholder="Search Servers"
-       @bind="serverFilter"
-       @bind:event="oninput"
+       value="@serverFilter"
+       @oninput="OnInputAsync"
        @onkeydown="OnKeyDown" />
   <button class="btn btn-outline-secondary" type="button" id="button-search" @onclick="HandleSearch">Search</button>
+  @if (showSuggestions)
+  {
+      <ul class="autocomplete-list">
+          @foreach (var item in suggestions)
+          {
+              <li @onclick="() => SelectSuggestion(item)" style="cursor:pointer">@item</li>
+          }
+      </ul>
+  }
 </div>
 
 @code {
@@ -18,12 +29,38 @@
   public void ClearFilter()
   {
     this.serverFilter = string.Empty;
+    showSuggestions = false;
   }
 
   private string serverFilter = "";
+  private List<string> suggestions = new();
+  private bool showSuggestions = false;
+
+  private async Task OnInputAsync(ChangeEventArgs e)
+  {
+      serverFilter = e.Value?.ToString() ?? "";
+      if (!string.IsNullOrWhiteSpace(serverFilter))
+      {
+          suggestions = await ServerSuggestionRepository.GetServerNameSuggestionsAsync(serverFilter);
+          showSuggestions = suggestions.Any();
+      }
+      else
+      {
+          showSuggestions = false;
+      }
+      StateHasChanged();
+  }
+
+  private void SelectSuggestion(string value)
+  {
+      serverFilter = value;
+      showSuggestions = false;
+      HandleSearch();
+  }
 
   private void HandleSearch()
   {
+    showSuggestions = false;
     SearchServerCallback.InvokeAsync(serverFilter);
   }
 
