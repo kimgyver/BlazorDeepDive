@@ -1,43 +1,53 @@
-## Ignore build results
+# Build results
 bin/
 obj/
 out/
 
-## User-specific files
+# User-specific files
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
 
-## ASP.NET Core / Blazor
+# VS Code
+.vscode/
+.history/
+
+# Rider
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Logs
+*.log
+
+# Entity Framework
+Migrations/
+
+# npm packages (if any)
+node_modules/
+
+# Publish
 wwwroot/dist/
 wwwroot/node_modules/
 
-## Visual Studio Code
-.vscode/
+# Others
+*.swp
+*.tmp
+*.bak
+*.orig
+*.rej
 
-## Rider / JetBrains
-.idea/
+# Azure Pipelines
+.azure-pipelines/
 
-## Mac files
-.DS_Store
-
-## Logs
-*.log
-
-## Package directories
-node_modules/
-packages/
-bower_components/
-
-## Dotnet-specific
-project.lock.json
-project.fragment.lock.json
-artifacts/
-
-## Others
-*.db
-*.sqlite
-.env
-.env.*
-secrets.json
+# Test results
+TestResults/
+ServerManagement/obj/Debug/net8.0/ServerManagement.dll
+ServerManagement/obj/Debug/net8.0/ServerManagement.pdb
+ServerManagement/obj/Debug/net8.0/ref/ServerManagement.dll
