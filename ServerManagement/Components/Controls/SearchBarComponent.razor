@@ -1,8 +1,10 @@
 <div class="input-group mb-3 input-width" @attributes=OtherAttributes>
-  <input type="text" class="form-control" placeholder="Search Servers" 
-    @bind-value="serverFilter"
-    @bind-value:event="oninput"
-  >
+  <input type="text"
+       class="form-control"
+       placeholder="Search Servers"
+       @bind="serverFilter"
+       @bind:event="oninput"
+       @onkeydown="OnKeyDown" />
   <button class="btn btn-outline-secondary" type="button" id="button-search" @onclick="HandleSearch">Search</button>
 </div>
 
@@ -23,5 +25,13 @@
   private void HandleSearch()
   {
     SearchServerCallback.InvokeAsync(serverFilter);
+  }
+
+  private void OnKeyDown(KeyboardEventArgs e)
+  {
+    if (e.Key == "Enter")
+    {
+      HandleSearch();
+    }
   }
 }
