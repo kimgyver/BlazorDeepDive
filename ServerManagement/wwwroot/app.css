@@ -76,3 +76,76 @@ h1:focus {
 .autocomplete-list li:hover {
   background: #eee;
 }
+
+.modal-backdrop {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(225, 223, 223, 0.4) !important;
+  z-index: 1000 !important;
+}
+.modal {
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  background: #fff !important;
+  border-radius: 12px !important;
+  padding: 1.5rem 2.5rem !important;
+  z-index: 2000 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25) !important;
+  min-width: 380px !important;
+  max-width: 480px !important;
+  width: auto !important;
+  color: #222 !important;
+  display: block !important;
+  max-height: unset !important;
+  height: unset !important;
+}
+.modal-content {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 1.2rem !important;
+  border: none !important;
+}
+.modal-content h5 {
+  margin-bottom: 0.5rem !important;
+  font-size: 1.2rem !important;
+  font-weight: 600 !important;
+}
+.modal-content p {
+  margin-bottom: 1rem !important;
+  text-align: center !important;
+  white-space: nowrap !important; /* 한 줄로 */
+}
+.modal-content .modal-buttons {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 1rem !important;
+  justify-content: center !important;
+  width: 100% !important;
+}
+.modal-content button {
+  min-width: 90px !important;
+  margin: 0 !important;
+  padding: 0.5rem 1.2rem !important;
+  border-radius: 6px !important;
+  border: none !important;
+  background: #1976d2 !important;
+  color: #fff !important;
+  font-size: 1rem !important;
+  cursor: pointer !important;
+  transition: background 0.2s;
+}
+.modal-content button:last-child {
+  background: #eee !important;
+  color: #222 !important;
+  border: 1px solid #bbb !important;
+}
+.modal-content button:hover {
+  background: #1565c0 !important;
+}

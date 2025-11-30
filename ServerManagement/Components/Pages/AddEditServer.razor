@@ -5,9 +5,12 @@
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Forms
 
-<NavigationLock 
-  OnBeforeInternalNavigation="OnBeforeInternalNavigation"
-  ConfirmExternalNavigation="true" />
+<NavigationLock OnBeforeInternalNavigation="ConfirmNavigation" />
+
+<CustomDialog Show="@showDialog"
+              Title="Warning"
+              Message="You have unsaved changes. Are you sure you want to leave?"
+              OnClose="OnDialogClose" />
 
 @if (@Id.HasValue)
 {
@@ -116,15 +119,37 @@ else
     hasUnsavedChanges = true;
   }
 
-  private async Task OnBeforeInternalNavigation(LocationChangingContext context)
+  private async Task ConfirmNavigation(LocationChangingContext context)
   {
-    if (!hasUnsavedChanges)
-      return;
-
-    var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "There are unsaved changes. Do you really want to leave?");
-    if (!confirmed)
-      context.PreventNavigation();
+      if (hasUnsavedChanges)
+      {
+          context.PreventNavigation();
+          showDialog = true;
+          pendingUri = context.TargetLocation;
+          navigationTcs = new TaskCompletionSource<bool>();
+          StateHasChanged();
+          var result = await navigationTcs.Task;
+          Console.WriteLine($"Dialog result: {result}, pendingUri: {pendingUri}");
+          if (result && pendingUri is not null)
+          {
+              await JSRuntime.InvokeVoidAsync("window.location.assign", pendingUri);
+          }
+      }
   }
+
+  private void OnDialogClose(bool confirmed)
+  {
+    showDialog = false;
+    if (navigationTcs != null && !navigationTcs.Task.IsCompleted)
+    {
+        navigationTcs.SetResult(confirmed);
+    }
+    StateHasChanged();
+  }
+
+  private TaskCompletionSource<bool>? navigationTcs;
+  private bool showDialog = false;
+  private string? pendingUri;
 
   private void Submit()
   {
