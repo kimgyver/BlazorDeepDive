@@ -6,9 +6,16 @@
        placeholder="Search Servers"
        value="@serverFilter"
        @oninput="OnInputAsync"
-       @onkeydown="OnKeyDown" />
-  <button class="btn btn-outline-secondary" type="button" id="button-search" @onclick="HandleSearch">Search</button>
-  @if (showSuggestions)
+       @onkeydown="OnKeyDown"
+       disabled="@isLoading" />
+  <button class="btn btn-outline-secondary" type="button" id="button-search" @onclick="HandleSearch" disabled="@isLoading">
+    @if (isLoading)
+    {
+      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    }
+    Search
+  </button>
+  @if (showSuggestions && !isLoading)
   {
       <ul class="autocomplete-list">
           @foreach (var item in suggestions)
@@ -40,18 +47,23 @@
   private string serverFilter = "";
   private List<string> suggestions = new();
   private bool showSuggestions = false;
+  private bool isLoading = false;
 
   private async Task OnInputAsync(ChangeEventArgs e)
   {
       serverFilter = e.Value?.ToString() ?? "";
       if (!string.IsNullOrWhiteSpace(serverFilter))
       {
+          isLoading = true;
+          StateHasChanged();
           suggestions = await ServerSuggestionRepository.GetServerNameSuggestionsAsync(serverFilter);
           showSuggestions = suggestions.Any();
+          isLoading = false;
       }
       else
       {
           showSuggestions = false;
+          isLoading = false;
       }
       StateHasChanged();
   }
@@ -60,20 +72,24 @@
   {
       serverFilter = value;
       showSuggestions = false;
-      HandleSearch();
+      _ = HandleSearch();
   }
 
-  private void HandleSearch()
+  private async Task HandleSearch()
   {
     showSuggestions = false;
-    SearchServerCallback.InvokeAsync(serverFilter);
+    isLoading = true;
+    StateHasChanged();
+    await SearchServerCallback.InvokeAsync(serverFilter);
+    isLoading = false;
+    StateHasChanged();
   }
 
-  private void OnKeyDown(KeyboardEventArgs e)
+  private async Task OnKeyDown(KeyboardEventArgs e)
   {
     if (e.Key == "Enter")
     {
-      HandleSearch();
+      await HandleSearch();
     }
   }
 }
