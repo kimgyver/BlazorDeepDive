@@ -1,7 +1,6 @@
 @page "/server/{id:int?}"
 @inject NavigationManager NavigationManager
 @inject IServersEfCoreRepository ServersEfCoreRepository
-@inject IJSRuntime JSRuntime
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Forms
 
@@ -132,19 +131,19 @@ else
           Console.WriteLine($"Dialog result: {result}, pendingUri: {pendingUri}");
           if (result && pendingUri is not null)
           {
-              await JSRuntime.InvokeVoidAsync("window.location.assign", pendingUri);
+              NavigationManager.NavigateTo(pendingUri);
           }
       }
   }
 
-  private void OnDialogClose(bool confirmed)
+  private async Task OnDialogClose(bool confirmed)
   {
     showDialog = false;
     if (navigationTcs != null && !navigationTcs.Task.IsCompleted)
     {
         navigationTcs.SetResult(confirmed);
     }
-    StateHasChanged();
+    await Task.CompletedTask;
   }
 
   private TaskCompletionSource<bool>? navigationTcs;
@@ -165,8 +164,7 @@ else
 
       hasUnsavedChanges = false;
     }
-    // ReturnUrl이 있으면 그리로, 없으면 기존대로
-    var target = string.IsNullOrEmpty(ReturnUrl) ? $"/servers/back_from/{this.server?.City}" : ReturnUrl;
+    var target = string.IsNullOrEmpty(ReturnUrl) ? "/servers" : ReturnUrl;
     NavigationManager.NavigateTo(target);
   }
 

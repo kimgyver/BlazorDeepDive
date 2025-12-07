@@ -19,16 +19,21 @@
     this.selectedCity = string.Empty;
   }
 
+  public void SetSelectedCity(string city)
+  {
+    this.selectedCity = city;
+  }
+
   private List<String> cities = CitiesRepository.GetCities();
 
   [Parameter]
   public string selectedCity { get; set; } = "Toronto";
 
-  private void HandleChangeCity(string city)
+  private async Task HandleChangeCity(string city)
   {
     this.selectedCity = city;
 
-    SelectCityCallBack.InvokeAsync(city);
+    await SelectCityCallBack.InvokeAsync(city);
 
     if (this.selectedCity.Equals("Halifax"))
     {

@@ -43,12 +43,12 @@
                 </button>
             }
             &nbsp;
-            <a href="/server/@Server.ServerId" class="btn btn-outline-primary">Edit</a>
+            <a href="@GetEditLink()" class="btn btn-outline-primary">Edit</a>
         </td>
         <td>
             <EditForm Model="Server"
                       FormName="@($"form-Server-{Server.ServerId}")"
-                      OnValidSubmit="@(() => { DeleteServer(Server.ServerId); })">
+                      OnValidSubmit="@(async () => { await DeleteServer(Server.ServerId); })">
                 <button type="submit" class="btn btn-primary">Delete</button>
             </EditForm>
         </td>
@@ -60,16 +60,32 @@
   [Parameter]
   public Server? Server { get; set; }
 
+  [Parameter]
+  public string? ReturnUrl { get; set; }
+
   [CascadingParameter(Name = "SelectedCity")]
   public string? SelectedCity { get; set; }
 
-  private void DeleteServer(int serverId)
+  private string GetReturnUrlParam()
+  {
+    if (string.IsNullOrEmpty(ReturnUrl))
+      return string.Empty;
+    return $"?returnUrl={Uri.EscapeDataString(ReturnUrl)}";
+  }
+
+  private string GetEditLink()
+  {
+    return $"/server/{Server?.ServerId}{GetReturnUrlParam()}";
+  }
+
+  private async Task DeleteServer(int serverId)
   {
     if (serverId > 0)
     {
       ServersEfCoreRepository.DeleteServer(serverId);
       @* servers= ServersEfCoreRepository.GetServersByCity("Toronto"); *@
-      NavigationManager.NavigateTo("/servers", true);
+      NavigationManager.NavigateTo(ReturnUrl ?? "/servers", true);
+      await Task.CompletedTask;
     }
   }
 

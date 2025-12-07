@@ -32,6 +32,11 @@
     showSuggestions = false;
   }
 
+  public void SetFilter(string filter)
+  {
+    this.serverFilter = filter;
+  }
+
   private string serverFilter = "";
   private List<string> suggestions = new();
   private bool showSuggestions = false;

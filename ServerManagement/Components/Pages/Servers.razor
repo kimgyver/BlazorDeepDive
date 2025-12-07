@@ -30,6 +30,12 @@
   [Parameter]
   public string? CityName { get; set; }
 
+  [SupplyParameterFromQuery]
+  public string? City { get; set; }
+
+  [SupplyParameterFromQuery]
+  public string? Search { get; set; }
+
   private string selectedCity = "Toronto";
   private string searchFilter = "";
   private CityListComponent? cityListComponent;
@@ -46,6 +52,7 @@
     this.selectedCity = city;
     this.searchFilter = string.Empty;
     searchBarComponent?.ClearFilter();
+    UpdateUrl();
   }
 
   private void HandleSearchServer(string searchFilter)
@@ -53,28 +60,56 @@
     @* this.servers = ServersEfCoreRepository.SearchServers(searchFilter); *@
     this.searchFilter = searchFilter;
     this.cityListComponent?.ClearSelection();
+    UpdateUrl();
   }
 
-  protected override void OnAfterRender(bool firstRender)
+  private void UpdateUrl()
   {
-    @* if (firstRender)
+    var queryParams = new List<string>();
+    if (!string.IsNullOrEmpty(searchFilter))
     {
-      if (NavigationManager.Uri.Contains("back_from")
-        && !string.IsNullOrWhiteSpace(CityName))
-      {
-        selectedCity = CityName;
-        StateHasChanged();
-      }
-    } *@
+      queryParams.Add($"search={Uri.EscapeDataString(searchFilter)}");
+    }
+    else if (selectedCity != "Toronto")
+    {
+      queryParams.Add($"city={Uri.EscapeDataString(selectedCity)}");
+    }
+
+    var url = "/servers";
+    if (queryParams.Any())
+    {
+      url += "?" + string.Join("&", queryParams);
+    }
+    NavigationManager.NavigateTo(url, replace: true);
   }
 
   protected override void OnParametersSet()
   {
-      if (NavigationManager.Uri.Contains("back_from")
-        && !string.IsNullOrWhiteSpace(CityName))
+    // 쿼리 파라미터에서 상태 복원
+    if (!string.IsNullOrEmpty(Search))
+    {
+      searchFilter = Search;
+      if (searchBarComponent != null)
       {
-        selectedCity = CityName;
-        @* StateHasChanged(); *@
+        searchBarComponent.SetFilter(Search);
       }
+    }
+    else if (!string.IsNullOrEmpty(City))
+    {
+      selectedCity = City;
+      if (cityListComponent != null)
+      {
+        cityListComponent.SetSelectedCity(City);
+      }
+    }
+    else if (!string.IsNullOrEmpty(CityName))
+    {
+      // back_from route에서 도시명 복원
+      selectedCity = CityName;
+      if (cityListComponent != null)
+      {
+        cityListComponent.SetSelectedCity(CityName);
+      }
+    }
   }
 }

@@ -12,13 +12,13 @@
   public string selectedCity { get; set; } = "Toronto";
 
   [Parameter]
-  public string city { get; set; }
+  public string? city { get; set; }
 
   [Parameter]
   public EventCallback<string> SelectCityCallback { get; set; }
 
-  private void SelectCity(string city)
+  private async Task SelectCity(string city)
   {
-    SelectCityCallback.InvokeAsync(city);
+    await SelectCityCallback.InvokeAsync(city);
   }
 }

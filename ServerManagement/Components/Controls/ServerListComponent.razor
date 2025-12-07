@@ -1,4 +1,5 @@
 @inject IServersEfCoreRepository ServersEfCoreRepository
+@inject NavigationManager NavigationManager
 
 <table class="table table-striped">
     <RepeaterComponent Items="servers">
@@ -23,7 +24,7 @@
         </thead>
         </Header>   
         <Row Context="server">
-            <ServerComponent Server="server"></ServerComponent>
+            <ServerComponent Server="server" ReturnUrl="@GetReturnUrl()"></ServerComponent>
         </Row>    
     </RepeaterComponent>
 </table>
@@ -43,5 +44,25 @@
       servers = ServersEfCoreRepository.GetServersByCity(CityName ?? "Toronto");
     else
       servers = ServersEfCoreRepository.SearchServers(this.SearchFilter);
+  }
+
+  private string GetReturnUrl()
+  {
+    var queryParams = new List<string>();
+    if (!string.IsNullOrWhiteSpace(SearchFilter))
+    {
+      queryParams.Add($"search={Uri.EscapeDataString(SearchFilter)}");
+    }
+    else if (!string.IsNullOrWhiteSpace(CityName) && CityName != "Toronto")
+    {
+      queryParams.Add($"city={Uri.EscapeDataString(CityName)}");
+    }
+
+    var url = "/servers";
+    if (queryParams.Any())
+    {
+      url += "?" + string.Join("&", queryParams);
+    }
+    return url;
   }
 }
