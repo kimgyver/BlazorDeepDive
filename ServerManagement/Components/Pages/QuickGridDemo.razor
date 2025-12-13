@@ -4,12 +4,16 @@
 @rendermode InteractiveServer
 
 @inject NavigationManager NavigationManager
-@inject IServersEfCoreRepository ServersEfCoreRepository
+@inject IServerService ServerService
 
 <h3>QuickGrid Demo</h3>
 <br />
 
-@if (servers != null)
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else if (servers != null)
 {
     <QuickGrid Items="servers.AsQueryable()" Pagination="paginationState">
         <PropertyColumn Property="s => s.Name"></PropertyColumn>
@@ -64,7 +68,7 @@
             <ChildContent Context="server">
                 <EditForm Model="server"
                           FormName="@($"form-Server-{server.ServerId}")"
-                          OnValidSubmit="@(() => { DeleteServer(server.ServerId); })">
+                          OnValidSubmit="@(async () => { await DeleteServer(server.ServerId); })">
                     <button type="submit" class="btn btn-primary">Delete</button>
                 </EditForm>
             </ChildContent>            
@@ -76,6 +80,7 @@
 
 @code {
     private List<Server>? servers;
+    private string? errorMessage;
 
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 5 };
     
@@ -83,17 +88,33 @@
     {
         if (firstRender)
         {
-            servers = ServersEfCoreRepository.GetServers();
+            try
+            {
+                servers = ServerService.GetServers();
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Get servers error: {ex.Message}");
+                errorMessage = "Failed to load servers.";
+            }
             StateHasChanged();
         }
     }
 
-    private void DeleteServer(int serverId)
+    private async Task DeleteServer(int serverId)
     {
         if (serverId > 0)
         {
-            ServersEfCoreRepository.DeleteServer(serverId);
-            NavigationManager.NavigateTo("/quickgrid", true);
+            try
+            {
+                ServerService.DeleteServer(serverId);
+                NavigationManager.NavigateTo("/quickgrid", true);
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Delete error: {ex.Message}");
+            }
+            await Task.CompletedTask;
         }
     }
 }

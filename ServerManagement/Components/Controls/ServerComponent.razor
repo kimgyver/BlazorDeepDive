@@ -1,5 +1,5 @@
 @inject NavigationManager NavigationManager
-@inject IServersEfCoreRepository ServersEfCoreRepository
+@inject IServerService ServerService
 
 @if (Server is not null)
 {
@@ -82,10 +82,15 @@
   {
     if (serverId > 0)
     {
-      ServersEfCoreRepository.DeleteServer(serverId);
-      @* servers= ServersEfCoreRepository.GetServersByCity("Toronto"); *@
-      NavigationManager.NavigateTo(ReturnUrl ?? "/servers", true);
-      await Task.CompletedTask;
+      try
+      {
+        await ServerService.DeleteServer(serverId);
+        NavigationManager.NavigateTo(ReturnUrl ?? "/servers", true);
+      }
+      catch (ArgumentException ex)
+      {
+        Console.WriteLine($"Delete error: {ex.Message}");
+      }
     }
   }
 
@@ -103,10 +108,17 @@
     }
   }
 
-  private void SetServerStatus(bool status)
+  private async void SetServerStatus(bool status)
   {
     if (this.Server is null) return;
     this.Server.IsOnline = status;
-    ServersEfCoreRepository.UpdateServer(this.Server.ServerId, Server);
+    try
+    {
+      await ServerService.UpdateServer(this.Server.ServerId, Server);
+    }
+    catch (ArgumentException ex)
+    {
+      Console.WriteLine($"Update error: {ex.Message}");
+    }
   }
 }

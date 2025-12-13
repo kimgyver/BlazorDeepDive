@@ -1,6 +1,6 @@
 @page "/servers/{id:int}"
 @inject NavigationManager NavigationManager
-@inject IServersEfCoreRepository ServersEfCoreRepository
+@inject IServerService ServerService
 @inject IJSRuntime JSRuntime
 @using System.Text.Json
 
@@ -12,7 +12,11 @@
 <br/>
 <br/>
 
-@if (server is not null)
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+  <div class="alert alert-danger">@errorMessage</div>
+}
+else if (server is not null)
 {
   <EditForm Model="server" FormName="formServer" OnValidSubmit="Submit">
     <DataAnnotationsValidator></DataAnnotationsValidator>
@@ -58,9 +62,19 @@
   [SupplyParameterFromForm(FormName = "formServer")]
   private Server? server {get; set;}
 
+  private string? errorMessage;
+
   protected override void OnParametersSet()
   {
-      server ??= ServersEfCoreRepository.GetServerById(this.Id);
+    try
+    {
+      server ??= ServerService.GetServerById(this.Id);
+    }
+    catch (ArgumentException ex)
+    {
+      Console.WriteLine($"Get server error: {ex.Message}");
+      errorMessage = "Server not found";
+    }
   }
 
   private void Submit()
@@ -68,10 +82,19 @@
     var input = JsonSerializer.Serialize(server);
     System.Console.WriteLine(input);
 
-    if (server is not null)
+    try
     {
-      ServersEfCoreRepository.UpdateServer(server.ServerId, server);
+      if (server is not null)
+      {
+        ServerService.UpdateServer(server.ServerId, server);
+      }
     }
+    catch (ArgumentException ex)
+    {
+      Console.WriteLine($"Update error: {ex.Message}");
+      return;
+    }
+
     NavigationManager.NavigateTo($"/servers/back_from/{this.server?.City}");
   }
 

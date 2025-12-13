@@ -35,9 +35,7 @@ public class ServersEfCoreRepository : IServersEfCoreRepository
   public Server? GetServerById(int id)
   {
     using var db = this._contextFactory.CreateDbContext();
-    var server = db.Servers.Find(id);
-    if (server is not null) return server;
-    return new Server();
+    return db.Servers.Find(id);
   }
 
   public void UpdateServer(int serverId, Server server)

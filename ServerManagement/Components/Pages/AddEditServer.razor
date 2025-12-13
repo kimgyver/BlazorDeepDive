@@ -1,6 +1,6 @@
 @page "/server/{id:int?}"
 @inject NavigationManager NavigationManager
-@inject IServersEfCoreRepository ServersEfCoreRepository
+@inject IServerService ServerService
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Forms
 
@@ -22,7 +22,11 @@ else
 <br/>
 <br/>
 
-@if (server is not null)
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+  <div class="alert alert-danger">@errorMessage</div>
+}
+else if (server is not null)
 {
   <EditForm EditContext="@editContext" FormName="formServer" OnValidSubmit="Submit">
     <DataAnnotationsValidator></DataAnnotationsValidator>
@@ -85,13 +89,27 @@ else
 
   private EditContext? editContext;
   private bool hasUnsavedChanges = false;
+  private string? errorMessage;
 
   protected override void OnParametersSet()
   {
     if (this.Id.HasValue)
-      server ??= ServersEfCoreRepository.GetServerById(this.Id.Value);
+    {
+      try
+      {
+        server ??= ServerService.GetServerById(this.Id.Value);
+      }
+      catch (ArgumentException ex)
+      {
+        Console.WriteLine($"Get server error: {ex.Message}");
+        errorMessage = "Server not found.";
+      }
+    }
     else
+    {
+      // For add mode, create a new Server object with IsOnline = false as default
       server ??= new Server() { IsOnline = false };
+    }
 
     if (server is not null && !string.IsNullOrEmpty(this.City))
     {
@@ -150,20 +168,29 @@ else
   private bool showDialog = false;
   private string? pendingUri;
 
-  private void Submit()
+  private async Task Submit()
   {
     var input = JsonSerializer.Serialize(server);
     System.Console.WriteLine(input);
 
-    if (server is not null)
+    try
     {
-      if (this.Id.HasValue)
-        ServersEfCoreRepository.UpdateServer(server.ServerId, server);
-      else
-        ServersEfCoreRepository.AddServer(server);
+      if (server is not null)
+      {
+        if (this.Id.HasValue)
+          await ServerService.UpdateServer(server.ServerId, server);
+        else
+          await ServerService.AddServer(server);
 
-      hasUnsavedChanges = false;
+        hasUnsavedChanges = false;
+      }
     }
+    catch (ArgumentException ex)
+    {
+      Console.WriteLine($"Submit error: {ex.Message}");
+      return;
+    }
+
     var target = string.IsNullOrEmpty(ReturnUrl) ? "/servers" : ReturnUrl;
     NavigationManager.NavigateTo(target);
   }
