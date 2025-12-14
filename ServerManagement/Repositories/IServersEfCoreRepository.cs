@@ -1,4 +1,6 @@
-namespace ServerManagement.Models;
+using ServerManagement.Models;
+
+namespace ServerManagement.Repositories;
 
 public interface IServersEfCoreRepository
 {

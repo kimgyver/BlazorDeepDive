@@ -1,4 +1,4 @@
-namespace ServerManagement.Models;
+namespace ServerManagement.Repositories;
 
 public interface IServerSuggestionRepository
 {

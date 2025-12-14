@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using ServerManagement.Data;
+using ServerManagement.Models;
 
-namespace ServerManagement.Models;
+namespace ServerManagement.Repositories;
 
 public class ServersEfCoreRepository : IServersEfCoreRepository
 {

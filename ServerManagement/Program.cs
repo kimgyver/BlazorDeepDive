@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using ServerManagement.Components;
 using ServerManagement.Data;
-using ServerManagement.Models;
+using ServerManagement.Repositories;
+using ServerManagement.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

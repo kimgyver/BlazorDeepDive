@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ServerManagement.Data;
 
-namespace ServerManagement.Models;
+namespace ServerManagement.Repositories;
 
 public class ServerSuggestionRepository : IServerSuggestionRepository
 {
