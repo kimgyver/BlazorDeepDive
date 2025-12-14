@@ -1,0 +1,35 @@
+.chart-container {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.chart-wrapper {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chart-wrapper h5 {
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.overall-chart-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+}
+
+.overall-chart-container canvas {
+  max-height: 300px;
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+    grid-template-columns: 1fr;
+  }
+}

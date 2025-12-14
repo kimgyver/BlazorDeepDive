@@ -1,0 +1,132 @@
+@inject IStatisticsService StatisticsService
+@implements IAsyncDisposable
+
+<div class="chart-container">
+    <div class="chart-wrapper">
+        <h5>Overall Online/Offline Ratio</h5>
+        <div class="overall-chart-container">
+            <canvas @ref="overallChartCanvas" id="overallChart"></canvas>
+        </div>
+    </div>
+    <div class="chart-wrapper">
+        <h5>City-wise Online/Offline Status</h5>
+        <canvas @ref="citiesChartCanvas" id="citiesChart"></canvas>
+    </div>
+</div>
+
+@code {
+    private ElementReference overallChartCanvas;
+    private ElementReference citiesChartCanvas;
+    private IJSObjectReference? module;
+    private IJSObjectReference? overallChart;
+    private IJSObjectReference? citiesChart;
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = null!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadChartsAsync();
+        }
+    }
+
+    private async Task LoadChartsAsync()
+    {
+        try
+        {
+            var stats = StatisticsService.GetServerStatistics();
+            if (stats == null)
+                return;
+
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Controls/ServerChartComponent.razor.js");
+
+            // Overall online/offline ratio chart
+            var overallData = new
+            {
+                labels = new[] { "Online", "Offline" },
+                datasets = new[]
+                {
+                    new
+                    {
+                        data = new[] { stats.OnlineCount, stats.OfflineCount },
+                        backgroundColor = new[] { "#28a745", "#dc3545" },
+                        borderColor = new[] { "#1e7e34", "#bd2130" },
+                        borderWidth = 2
+                    }
+                }
+            };
+
+            overallChart = await module.InvokeAsync<IJSObjectReference>(
+                "createOverallChart",
+                overallChartCanvas,
+                overallData
+            );
+
+            // City-wise online/offline chart
+            var cityLabels = stats.CityStatisticsDetails.Keys.ToList();
+            var onlinePerCity = cityLabels.Select(city =>
+                stats.CityStatisticsDetails.ContainsKey(city)
+                    ? stats.CityStatisticsDetails[city].OnlineCount
+                    : 0
+            ).ToList();
+
+            var offlinePerCity = cityLabels.Select(city =>
+                stats.CityStatisticsDetails.ContainsKey(city)
+                    ? stats.CityStatisticsDetails[city].OfflineCount
+                    : 0
+            ).ToList();
+
+            var citiesData = new
+            {
+                labels = cityLabels,
+                datasets = new object[]
+                {
+                    new
+                    {
+                        label = "Online",
+                        data = onlinePerCity,
+                        backgroundColor = "#28a745",
+                        borderColor = "#1e7e34",
+                        borderWidth = 1
+                    },
+                    new
+                    {
+                        label = "Offline",
+                        data = offlinePerCity,
+                        backgroundColor = "#dc3545",
+                        borderColor = "#bd2130",
+                        borderWidth = 1
+                    }
+                }
+            };
+
+            citiesChart = await module.InvokeAsync<IJSObjectReference>(
+                "createCitiesChart",
+                citiesChartCanvas,
+                citiesData
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Chart load error: {ex.Message}");
+        }
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (module is not null)
+        {
+            try
+            {
+                await module.InvokeVoidAsync("disposeCharts");
+                await module.DisposeAsync();
+            }
+            catch (ObjectDisposedException)
+            {
+                // JS interop is already disposed
+            }
+        }
+    }
+}

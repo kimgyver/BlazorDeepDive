@@ -1,0 +1,20 @@
+@page "/dashboard"
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<h3>Dashboard</h3>
+<br/>
+
+<ServerStatisticsComponent Mode="Detailed" />
+<br/>
+
+<ServerChartComponent />
+<br/>
+
+<p>
+  <a href="/servers" class="btn btn-primary">View Server List</a>
+</p>
+
+@code {
+}

@@ -1,0 +1,111 @@
+@inject IStatisticsService StatisticsService
+
+<!-- Server Statistics -->
+@if (statistics != null)
+{
+  @if (Mode == "Simple")
+  {
+    <!-- Simple Mode - 목록 페이지용 -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">📊 Server Statistics</h5>
+        <div class="row">
+          <div class="col-md-12">
+            <p>
+              <strong>Online:</strong> <span style="color: green;">@statistics.OnlineCount</span> | 
+              <strong>Offline:</strong> <span style="color: red;">@statistics.OfflineCount</span> | 
+              <strong>Total:</strong> @statistics.TotalCount
+            </p>
+            <p>
+              <strong>Online Rate:</strong> @statistics.OnlinePercentage.ToString("F1")%
+            </p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h6>By City:</h6>
+            <div class="city-badges">
+              @foreach (var city in statistics.CityCounts)
+              {
+                <span class="badge bg-secondary me-2 mb-2">@city.Key <strong>(@city.Value)</strong></span>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+  else if (Mode == "Detailed")
+  {
+    <!-- Detailed Mode - Dashboard 페이지용 -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">📊 Server Statistics Overview</h5>
+        
+        <!-- Summary Row -->
+        <div class="row mb-4">
+          <div class="col-md-3">
+            <div class="text-center">
+              <h3 style="color: green;">@statistics.OnlineCount</h3>
+              <p><strong>Online</strong></p>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="text-center">
+              <h3 style="color: red;">@statistics.OfflineCount</h3>
+              <p><strong>Offline</strong></p>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="text-center">
+              <h3>@statistics.TotalCount</h3>
+              <p><strong>Total</strong></p>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="text-center">
+              <h3>@statistics.OnlinePercentage.ToString("F1")%</h3>
+              <p><strong>Online Rate</strong></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- City Distribution -->
+        <hr />
+        <h6 class="mt-3 mb-3">City Distribution</h6>
+        <div class="city-distribution-grid">
+          @foreach (var city in statistics.CityCounts)
+          {
+            <div class="city-item">
+              <div class="city-header">
+                <strong>@city.Key</strong>
+                <span class="city-count">@city.Value</span>
+              </div>
+              <div class="city-percentage">@((city.Value * 100 / statistics.TotalCount).ToString("F1"))%</div>
+              <div class="progress progress-sm">
+                <div class="progress-bar" style="width: @((city.Value * 100 / statistics.TotalCount))%"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+}
+
+@code {
+  [Parameter]
+  public string Mode { get; set; } = "Simple";
+
+  private ServerStatistics? statistics;
+
+  protected override void OnInitialized()
+  {
+    LoadStatistics();
+  }
+
+  private void LoadStatistics()
+  {
+    statistics = StatisticsService.GetServerStatistics();
+  }
+}

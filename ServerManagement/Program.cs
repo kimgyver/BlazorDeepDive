@@ -16,6 +16,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddTransient<IServersEfCoreRepository, ServersEfCoreRepository>();
 builder.Services.AddScoped<IServerService, ServerService>();
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<IServerSuggestionRepository, ServerSuggestionRepository>();
 
 var app = builder.Build();
