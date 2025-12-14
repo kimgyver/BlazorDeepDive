@@ -1,5 +1,6 @@
 @inject IServerService ServerService
 @inject NavigationManager NavigationManager
+@inject ILogger<ServerListComponent> Logger
 
 @if (isLoading)
 {
@@ -68,7 +69,7 @@ else
     }
     catch (ArgumentException ex)
     {
-      Console.WriteLine($"Service error: {ex.Message}");
+      Logger.LogError(ex, "Error loading servers for city '{CityName}' or search filter '{SearchFilter}'", CityName ?? "Toronto", SearchFilter);
       errorMessage = "Failed to load servers.";
     }
     

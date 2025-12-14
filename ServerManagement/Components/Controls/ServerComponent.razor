@@ -1,5 +1,6 @@
 @inject NavigationManager NavigationManager
 @inject IServerService ServerService
+@inject ILogger<ServerComponent> Logger
 
 @if (Server is not null)
 {
@@ -89,7 +90,7 @@
       }
       catch (ArgumentException ex)
       {
-        Console.WriteLine($"Delete error: {ex.Message}");
+        Logger.LogError(ex, "Error deleting server ID {ServerId}", serverId);
       }
     }
   }
@@ -118,7 +119,7 @@
     }
     catch (ArgumentException ex)
     {
-      Console.WriteLine($"Update error: {ex.Message}");
+      Logger.LogError(ex, "Error updating server ID {ServerId}", this.Server?.ServerId ?? 0);
     }
   }
 }

@@ -1,6 +1,7 @@
 @page "/servers/add"
 @inject NavigationManager NavigationManager
 @inject IServersEfCoreRepository ServersEfCoreRepository
+@inject ILogger<AddServer> Logger
 @using System.Text.Json
 
 <h3>Add Server</h3>
@@ -58,11 +59,12 @@
   private void Submit()
   {
     var input = JsonSerializer.Serialize(server);
-    System.Console.WriteLine(input);
+    Logger.LogDebug("Adding new server: {ServerData}", input);
 
     if (server is not null)
     {
       ServersEfCoreRepository.AddServer(server);
+      Logger.LogInformation("New server created: {ServerName} in {CityName}", server.Name, server.City);
     }
     NavigationManager.NavigateTo($"/servers/back_from/{this.server?.City}");
   }

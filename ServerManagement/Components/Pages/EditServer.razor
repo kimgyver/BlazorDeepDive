@@ -1,6 +1,7 @@
 @page "/servers/{id:int}"
 @inject NavigationManager NavigationManager
 @inject IServerService ServerService
+@inject ILogger<EditServer> Logger
 @inject IJSRuntime JSRuntime
 @using System.Text.Json
 
@@ -72,7 +73,7 @@ else if (server is not null)
     }
     catch (ArgumentException ex)
     {
-      Console.WriteLine($"Get server error: {ex.Message}");
+      Logger.LogError(ex, "Error loading server with ID {ServerId}", this.Id);
       errorMessage = "Server not found";
     }
   }
@@ -80,18 +81,19 @@ else if (server is not null)
   private void Submit()
   {
     var input = JsonSerializer.Serialize(server);
-    System.Console.WriteLine(input);
+    Logger.LogDebug("Updating server data: {ServerData}", input);
 
     try
     {
       if (server is not null)
       {
         ServerService.UpdateServer(server.ServerId, server);
+        Logger.LogInformation("Server ID {ServerId} updated successfully", server.ServerId);
       }
     }
     catch (ArgumentException ex)
     {
-      Console.WriteLine($"Update error: {ex.Message}");
+      Logger.LogError(ex, "Error updating server ID {ServerId}", server?.ServerId ?? 0);
       return;
     }
 

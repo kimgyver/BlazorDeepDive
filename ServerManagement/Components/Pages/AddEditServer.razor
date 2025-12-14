@@ -1,6 +1,7 @@
 @page "/server/{id:int?}"
 @inject NavigationManager NavigationManager
 @inject IServerService ServerService
+@inject ILogger<AddEditServer> Logger
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Forms
 
@@ -101,7 +102,7 @@ else if (server is not null)
       }
       catch (ArgumentException ex)
       {
-        Console.WriteLine($"Get server error: {ex.Message}");
+        Logger.LogError(ex, "Error loading server with ID {ServerId}", this.Id);
         errorMessage = "Server not found.";
       }
     }
@@ -146,7 +147,7 @@ else if (server is not null)
           navigationTcs = new TaskCompletionSource<bool>();
           StateHasChanged();
           var result = await navigationTcs.Task;
-          Console.WriteLine($"Dialog result: {result}, pendingUri: {pendingUri}");
+          Logger.LogInformation("Navigation dialog result: {Result}, target URI: {TargetUri}", result, pendingUri);
           if (result && pendingUri is not null)
           {
               NavigationManager.NavigateTo(pendingUri);
@@ -171,23 +172,29 @@ else if (server is not null)
   private async Task Submit()
   {
     var input = JsonSerializer.Serialize(server);
-    System.Console.WriteLine(input);
+    Logger.LogDebug("Submitting server data: {ServerData}", input);
 
     try
     {
       if (server is not null)
       {
         if (this.Id.HasValue)
+        {
           await ServerService.UpdateServer(server.ServerId, server);
+          Logger.LogInformation("Server ID {ServerId} updated successfully", server.ServerId);
+        }
         else
+        {
           await ServerService.AddServer(server);
+          Logger.LogInformation("New server created: {ServerName} in {CityName}", server.Name, server.City);
+        }
 
         hasUnsavedChanges = false;
       }
     }
     catch (ArgumentException ex)
     {
-      Console.WriteLine($"Submit error: {ex.Message}");
+      Logger.LogError(ex, "Error submitting server data");
       return;
     }
 

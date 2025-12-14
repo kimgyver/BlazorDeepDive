@@ -1,4 +1,5 @@
 @inject IStatisticsService StatisticsService
+@inject ILogger<ServerChartComponent> Logger
 @implements IAsyncDisposable
 
 <div class="chart-container">
@@ -111,7 +112,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Chart load error: {ex.Message}");
+            Logger.LogError(ex, "Error loading charts");
         }
     }
 

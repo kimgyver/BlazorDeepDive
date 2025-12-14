@@ -5,6 +5,7 @@
 
 @inject NavigationManager NavigationManager
 @inject IServerService ServerService
+@inject ILogger<QuickGridDemo> Logger
 
 <h3>QuickGrid Demo</h3>
 <br />
@@ -91,10 +92,11 @@ else if (servers != null)
             try
             {
                 servers = ServerService.GetServers();
+                Logger.LogInformation("Loaded {ServerCount} servers for QuickGrid", servers.Count);
             }
             catch (ArgumentException ex)
             {
-                Console.WriteLine($"Get servers error: {ex.Message}");
+                Logger.LogError(ex, "Error loading servers for QuickGrid");
                 errorMessage = "Failed to load servers.";
             }
             StateHasChanged();
@@ -108,11 +110,12 @@ else if (servers != null)
             try
             {
                 ServerService.DeleteServer(serverId);
+                Logger.LogInformation("Deleted server ID {ServerId}", serverId);
                 NavigationManager.NavigateTo("/quickgrid", true);
             }
             catch (ArgumentException ex)
             {
-                Console.WriteLine($"Delete error: {ex.Message}");
+                Logger.LogError(ex, "Error deleting server ID {ServerId}", serverId);
             }
             await Task.CompletedTask;
         }

@@ -1,10 +1,26 @@
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using ServerManagement.Components;
 using ServerManagement.Data;
 using ServerManagement.Repositories;
 using ServerManagement.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+builder.Host.UseSerilog((context, services, configuration) =>
+    configuration
+        .MinimumLevel.Information()
+        .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff}] [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+        .WriteTo.File(
+            path: "logs/application-.log",
+            outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff}] [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}",
+            rollingInterval: RollingInterval.Day,
+            fileSizeLimitBytes: 10_485_760, // 10 MB
+            retainedFileCountLimit: 7 // 7일치 보관
+        )
+        .Enrich.FromLogContext()
+);
 
 // Add services to the container.
 builder.Services.AddDbContextFactory<ServerManagementContext>(options =>
