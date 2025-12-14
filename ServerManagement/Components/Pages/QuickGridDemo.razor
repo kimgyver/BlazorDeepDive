@@ -85,21 +85,17 @@ else if (servers != null)
 
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 5 };
     
-    protected override void OnAfterRender(bool firstRender)
+    protected override void OnInitialized()
     {
-        if (firstRender)
+        try
         {
-            try
-            {
-                servers = ServerService.GetServers();
-                Logger.LogInformation("Loaded {ServerCount} servers for QuickGrid", servers.Count);
-            }
-            catch (ArgumentException ex)
-            {
-                Logger.LogError(ex, "Error loading servers for QuickGrid");
-                errorMessage = "Failed to load servers.";
-            }
-            StateHasChanged();
+            servers = ServerService.GetServers();
+            Logger.LogInformation("Loaded {ServerCount} servers for QuickGrid", servers.Count);
+        }
+        catch (ArgumentException ex)
+        {
+            Logger.LogError(ex, "Error loading servers for QuickGrid");
+            errorMessage = "Failed to load servers.";
         }
     }
 
