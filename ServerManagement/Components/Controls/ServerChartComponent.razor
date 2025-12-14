@@ -65,7 +65,8 @@
             );
 
             // City-wise online/offline chart
-            var cityLabels = stats.CityStatisticsDetails.Keys.ToList();
+            // Sort city labels according to CityOrderConfig for consistent ordering
+            var cityLabels = CityOrderConfig.SortCities(stats.CityStatisticsDetails.Keys.ToList());
             var onlinePerCity = cityLabels.Select(city =>
                 stats.CityStatisticsDetails.ContainsKey(city)
                     ? stats.CityStatisticsDetails[city].OnlineCount

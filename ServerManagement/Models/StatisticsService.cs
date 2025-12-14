@@ -28,7 +28,6 @@ public class StatisticsService : IStatisticsService
           CityName = g.Key ?? "Unknown",
           Servers = g.ToList()
         })
-        .OrderByDescending(x => x.Servers.Count)
         .ToDictionary(
           x => x.CityName,
           x => new CityStatistics
@@ -39,6 +38,9 @@ public class StatisticsService : IStatisticsService
             OfflineCount = x.Servers.Count(s => !s.IsOnline)
           }
         );
+
+      // Sort cities according to CityOrderConfig for consistent ordering
+      cityStats = CityOrderConfig.SortDictionary(cityStats);
 
       return new ServerStatistics
       {
