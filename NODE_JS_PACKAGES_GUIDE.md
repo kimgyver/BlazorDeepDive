@@ -48,6 +48,171 @@ await module.InvokeAsync("createOverallChart", canvas, data);
 
 ---
 
+## 🔍 CDN 로드와 글로벌 변수 접근 흐름
+
+### 📍 현재 프로젝트 구조
+
+**App.razor에서 CDN 로드:**
+
+```html
+<!-- App.razor (라인 12) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+```
+
+**JavaScript에서 글로벌 접근:**
+
+```javascript
+// ServerChartComponent.razor.js
+export function createOverallChart(canvas, data) {
+  const ctx = canvas.getContext("2d");
+
+  // CDN에서 로드된 글로벌 Chart 변수 사용
+  charts.overall = new Chart(ctx, {
+    type: "doughnut",
+    data: data
+    // ...
+  });
+}
+```
+
+### 🔗 로드 → 글로벌 접근 흐름
+
+```
+1️⃣ HTML 페이지 로드 (App.razor)
+   ↓
+2️⃣ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 실행
+   ↓
+3️⃣ CDN에서 chart.js 다운로드 및 파싱
+   ↓
+4️⃣ 글로벌 window 객체에 Chart 생성자 등록
+   window.Chart = Chart클래스
+   ↓
+5️⃣ 이후 로드되는 모든 JavaScript 모듈에서 접근 가능
+   ↓
+6️⃣ ServerChartComponent.razor.js에서 new Chart() 사용
+   (전체 경로: new window.Chart(...) ≈ new Chart(...))
+```
+
+### 💡 개발자가 알 수 있는 방법
+
+#### 방법 1️⃣: 브라우저 DevTools (F12)
+
+**콘솔 탭에서 직접 확인:**
+
+```javascript
+// 브라우저 콘솔에 입력
+typeof Chart;
+
+// 출력 결과
+("function"); // ← Chart 생성자 함수 존재!
+```
+
+**Chart 객체 내용 확인:**
+
+```javascript
+// 브라우저 콘솔에서
+Object.keys(Chart);
+// 출력: defaults, helpers, plugins, version, ...
+
+Chart.version;
+// 출력: "4.4.0" (또는 로드된 버전)
+```
+
+#### 방법 2️⃣: HTML 소스 확인
+
+```html
+<!-- App.razor 확인 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+↑ 이 줄이 있으면 → window.Chart 글로벌 변수 생성됨
+```
+
+#### 방법 3️⃣: NPM 패키지 문서 확인
+
+CDN 제공자 (jsDelivr, unpkg) 페이지에서 확인:
+
+**jsDelivr 방식:**
+
+```
+https://www.jsdelivr.net/npm/chart.js/
+
+→ "UMD build" 또는 "Browser Global" 섹션 확인
+→ <script> 태그로 로드하면 window.Chart 생성
+```
+
+**Chart.js 공식 문서:**
+
+```
+https://www.chartjs.org/docs/latest/getting-started/
+
+→ "Installation" → "Quickstart" 섹션
+→ <script> 방식 사용하면 new Chart() 가능
+```
+
+### 📊 CDN 라이브러리의 글로벌 변수 이름
+
+| 라이브러리 | CDN | 글로벌 변수    | 사용 예                    |
+| ---------- | --- | -------------- | -------------------------- |
+| Chart.js   | ✅  | `Chart`        | `new Chart(ctx, {...})`    |
+| jQuery     | ✅  | `jQuery` / `$` | `$('.div')`                |
+| Bootstrap  | ✅  | `bootstrap`    | `new bootstrap.Modal(...)` |
+| Lodash     | ✅  | `_`            | `_.map(arr, fn)`           |
+| Moment.js  | ✅  | `moment`       | `moment().format()`        |
+| Three.js   | ✅  | `THREE`        | `new THREE.Scene()`        |
+| D3.js      | ✅  | `d3`           | `d3.select('body')`        |
+| Axios      | ⚠️  | `axios`        | `axios.get('/api')`        |
+
+### 🔎 글로벌 변수명 찾는 방법
+
+**패키지마다 글로벌 변수명이 다릅니다!** 공식 문서에서 확인하세요.
+
+**예시 - Chart.js:**
+
+```html
+<!-- 공식 문서 예제 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('myChart').getContext('2d');
+  const myChart = new Chart(ctx, {...});  ← 여기서 Chart가 글로벌 변수임을 알 수 있음
+</script>
+```
+
+**찾는 순서:**
+
+1. 패키지 공식 웹사이트 방문
+2. "Installation", "Getting Started", "CDN" 섹션 찾기
+3. 예제 코드 확인 → 글로벌 변수명 파악
+4. 불확실하면 `typeof 변수명`으로 브라우저 콘솔에서 확인
+
+| 패키지    | 공식 문서                                              |
+| --------- | ------------------------------------------------------ |
+| Chart.js  | https://www.chartjs.org/docs/latest/getting-started/   |
+| jQuery    | https://jquery.com/                                    |
+| Bootstrap | https://getbootstrap.com/docs/5.0/getting-started/cdn/ |
+| Three.js  | https://threejs.org/docs/                              |
+| D3.js     | https://d3js.org/                                      |
+| Lodash    | https://lodash.com/                                    |
+
+---
+
+### 🎓 결론
+
+**"어떻게 개발자가 알 수 있어?"**
+
+1. ✅ **App.razor의 `<script>` 태그 확인**
+   - CDN URL을 보면 어떤 라이브러리가 로드되는지 알 수 있음
+2. ✅ **라이브러리 공식 문서 확인**
+   - "Browser/CDN 사용법" 섹션에서 글로벌 변수명 기재
+3. ✅ **브라우저 DevTools 콘솔에서 확인**
+
+   - `typeof Chart` → `"function"` 이면 사용 가능
+   - `Chart.version` → 로드된 버전 확인
+
+4. ✅ **JavaScript 소스 코드 분석**
+   - `new Chart(...)` 사용 → Chart 라이브러리 필요
+   - `new bootstrap.Modal(...)` 사용 → Bootstrap 필요
+
+---
+
 ## 🔄 3가지 사용 방식 비교
 
 | 방식           | 방법                     | 개발 | 프로덕션 | 추천          |
@@ -319,6 +484,225 @@ export function disposeCharts() {
   // 정리 코드
 }
 ```
+
+---
+
+## 📝 JavaScript 모듈 작성 가이드
+
+### 기본 구조
+
+JavaScript 모듈은 Blazor에서 로드할 함수들을 `export`로 선언해야 합니다.
+
+```javascript
+// 함수 정의
+function helper() {
+  // 내부 로직 (export 불필요)
+}
+
+// Blazor에서 호출할 함수들
+export function publicFunction(arg1, arg2) {
+  helper(); // 내부 함수 사용 가능
+  return result;
+}
+
+export function anotherPublicFunction() {
+  // 로직
+}
+```
+
+### Step 1️⃣: 모듈 생성
+
+파일명: `ServerChartComponent.razor.js`
+
+```javascript
+// 차트 객체 저장소 (메모리 관리용)
+const charts = {};
+
+// 내부 함수 (export하지 않음)
+function initializeChartOptions() {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top"
+      }
+    }
+  };
+}
+
+// Blazor에서 호출할 공개 함수
+export function createOverallChart(canvas, data) {
+  const ctx = canvas.getContext("2d");
+
+  const chart = new Chart(ctx, {
+    type: "doughnut",
+    data: data,
+    options: initializeChartOptions()
+  });
+
+  // 메모리 관리: 차트 참조 저장
+  charts["overall"] = chart;
+
+  return chart;
+}
+
+export function createDetailChart(canvas, data) {
+  const ctx = canvas.getContext("2d");
+
+  const chart = new Chart(ctx, {
+    type: "bar",
+    data: data,
+    options: initializeChartOptions()
+  });
+
+  charts["detail"] = chart;
+
+  return chart;
+}
+
+// 정리 함수 (컴포넌트 언마운트 시 호출)
+export function disposeCharts() {
+  Object.values(charts).forEach(chart => {
+    if (chart) {
+      chart.destroy(); // Chart.js 메모리 해제
+    }
+  });
+
+  // 저장소 초기화
+  Object.keys(charts).forEach(key => {
+    delete charts[key];
+  });
+}
+```
+
+### Step 2️⃣: Blazor 컴포넌트에서 모듈 로드
+
+```csharp
+@inject IStatisticsService StatisticsService
+@implements IAsyncDisposable
+
+@code {
+    [Inject]
+    private IJSRuntime JS { get; set; } = null!;
+
+    private IJSObjectReference? module;
+    private ElementReference overallChartCanvas;
+    private ElementReference detailChartCanvas;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // 1️⃣ 모듈 로드 (한 번만 실행)
+            module = await JS.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./Components/Controls/ServerChartComponent.razor.js"
+            );
+
+            // 2️⃣ 데이터 준비
+            var stats = StatisticsService.GetServerStatistics();
+            var overallData = new { /* 데이터 */ };
+            var detailData = new { /* 데이터 */ };
+
+            // 3️⃣ JavaScript 함수 호출
+            await module.InvokeAsync(
+                "createOverallChart",
+                overallChartCanvas,
+                overallData
+            );
+
+            await module.InvokeAsync(
+                "createDetailChart",
+                detailChartCanvas,
+                detailData
+            );
+        }
+    }
+
+    // 컴포넌트 언마운트 시 정리
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (module is not null)
+        {
+            // JavaScript 메모리 해제
+            await module.InvokeVoidAsync("disposeCharts");
+            await module.DisposeAsync();
+        }
+    }
+}
+```
+
+### Step 3️⃣: HTML에서 canvas 요소 참조
+
+```razor
+@rendermode InteractiveServer
+
+<div class="charts-container">
+    <canvas @ref="overallChartCanvas"
+            id="overallChart"
+            width="400"
+            height="300"></canvas>
+
+    <canvas @ref="detailChartCanvas"
+            id="detailChart"
+            width="400"
+            height="300"></canvas>
+</div>
+```
+
+### 📋 작성 체크리스트
+
+| 항목                                | 확인               |
+| ----------------------------------- | ------------------ |
+| ✅ `export` 키워드로 공개 함수 선언 | 필수               |
+| ✅ `@ref`로 canvas/DOM 요소 받기    | 필수 (DOM 조작 시) |
+| ✅ 메모리 정리 함수 (`dispose`)     | 권장               |
+| ✅ 내부 함수는 `export` 하지 않기   | 권장               |
+| ✅ 에러 처리 추가                   | 권장               |
+
+### 💡 모범 사례 (Best Practices)
+
+```javascript
+// ✅ 좋은 예
+export function processData(data) {
+  try {
+    return data.map(item => ({
+      id: item.id,
+      value: item.value * 2
+    }));
+  } catch (error) {
+    console.error("데이터 처리 실패:", error);
+    return [];
+  }
+}
+
+// ❌ 피해야 할 것
+export function badExample() {
+  // 전역 변수 수정 금지
+  window.globalData = [];
+
+  // console.log만 사용하는 무의미한 코드
+  console.log("작동됨");
+}
+
+// ✅ 메모리 관리
+const resources = new Map();
+
+export function allocateResource(id, data) {
+  resources.set(id, data);
+}
+
+export function freeResources() {
+  resources.forEach((data, id) => {
+    // 정리 로직
+    data.destroy?.();
+  });
+  resources.clear();
+}
+```
+
+---
 
 ### 💡 핵심 패턴
 
