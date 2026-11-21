@@ -1,88 +1,133 @@
 # Blazor 학습 가이드
 
-## 📌 Application Types (Render Mode)
-
-### 1️⃣ Blazor SSR (Server Side Rendering)
-
-- **실행 위치:** 서버
-- **특징:** 서버에서 렌더링 후 정적 HTML을 클라이언트에 전송
-- **Parameter 받기:**
-  - `[Parameter]` ← 부모 컴포넌트 또는 라우트에서
-  - `[SupplyParameterFromForm]` ← Form 제출 (Blazor SSR만 가능)
-  - `[SupplyParameterFromQuery]` ← 쿼리 문자열 (?a=b&c=d)
-- **StreamRendering:** 빠른 초기 렌더링 + 동적 결과 지연 표시 (Blazor SSR만 가능)
-
-### 2️⃣ Server Interactivity (InteractiveServer)
-
-- **실행 위치:** 서버
-- **특징:** SignalR (WebSocket) 연결로 실시간 양방향 통신
-- **UI 처리:** 서버에서 이벤트 처리, 세션/상태 관리
-- **@rendermode 설정:**
-  - 컴포넌트 레벨: `@rendermode InteractiveServer`
-  - 페이지 레벨: `@rendermode` 지시문
-  - 전역 (App.razor): 기본값 설정
-- **Pre-rendering 옵션:** `@rendermode InteractiveServer(prerender: false)`
-- **장점:** 보안 강함
-- **단점:** 네트워크 지연 가능
-- **대상:** 소규모 서비스 (동시접속 < 1000)
-
-**주요 기능:**
-
-- `<Virtualize>`: 보이는 부분만 렌더링 (대량 리스트)
-- `@bind` / `@bind-Value`: 양방향 바인딩 (InteractiveServer에서만 가능)
-
-### 3️⃣ WebAssembly (InteractiveWebAssembly)
-
-- **실행 위치:** 브라우저 (클라이언트)
-- **특징:** 전체 애플리케이션이 브라우저에서 실행
-- **자동 Pre-rendering:** WebAssembly는 자동으로 서버에서 Pre-rendering됨
-- **DI 설정 필수:** Host 프로젝트 + Client 프로젝트 모두 필요
-- **장점:** 빠른 응답성, 네트워크 비용 적음
-- **단점:** 보안 약함 (코드 노출), DI 복잡
-- **대상:** 대규모 서비스 (동시접속 > 1000), 보안 이슈 적을 경우
-
-**주요 차이점:**
-
-| 항목         | Server              | WebAssembly             |
-| ------------ | ------------------- | ----------------------- |
-| **DB 접근**  | ✅ 직접 가능        | ❌ API로만 가능         |
-| **보안**     | 강함 (코드 숨김)    | 약함 (코드 노출)        |
-| **네트워크** | SignalR (지연 가능) | 없음 (빠름)             |
-| **인증**     | SignalR 채널        | JWT 토큰 (LocalStorage) |
-| **DI Setup** | Host만 필요         | Host + Client 모두 필요 |
-
-**WebAssembly에서는 API 필수:**
-
-```csharp
-// ❌ 불가능 (DB 접근)
-public class ServerService : IServerService {
-    public async Task GetServersAsync() {
-        var servers = await dbContext.Servers.ToListAsync();  // ❌ 브라우저에서 불가
-    }
-}
-
-// ✅ 가능 (API 호출)
-public class ServerApiService : IServerService {
-    private readonly HttpClient http;
-
-    public async Task GetServersAsync() {
-        return await http.GetFromJsonAsync("/api/servers");  // ✅ API로 통신
-    }
-}
-```
+> Render mode·컴포넌트 API·실무 패턴 치트시트.  
+> 프리렌더/JS 타이밍 상세 → [`BLAZOR_RENDERING_GUIDE.md`](./BLAZOR_RENDERING_GUIDE.md)  
+> Chart.js·CDN/wwwroot → [`NODE_JS_PACKAGES_GUIDE.md`](./NODE_JS_PACKAGES_GUIDE.md)
 
 ---
 
-## 🎯 Component Features
+## Application Types (Render Mode)
+
+### 1. Static SSR (정적 서버 렌더링)
+
+- **실행:** 서버에서 HTML 생성 → 클라이언트로 전송 (기본 상호작용 없음)
+- **파라미터:**
+  - `[Parameter]` ← 부모 또는 `@page` 경로 (`/items/{id:int}`)
+  - `[SupplyParameterFromForm]` ← **정적 SSR 폼 POST** (EditForm / HTML form)에 특히 중요
+  - `[SupplyParameterFromQuery]` ← `?a=b` (**SSR·Interactive 모두**에서 사용 가능 — SSR 전용 아님)
+- **StreamRendering:** 초기 HTML을 먼저 보내고 이후 스트리밍으로 채움 (**정적 SSR** 맥락)
+
+### 2. Interactive Server (`InteractiveServer`)
+
+- **실행:** 서버. **SignalR**로 UI 이벤트·상태 동기화
+- **설정 위치:** 컴포넌트 / 페이지 / 전역(`Routes`·`App` 등)
+- **프리렌더:** .NET 8+에서 interactive 모드는 보통 **기본 prerender ON**  
+  끄기: `@rendermode @(new InteractiveServerRenderMode(prerender: false))`
+- **강점:** 비밀·민감 로직을 서버에 두기 쉬움  
+- **약점:** 회로·네트워크 지연, 서버 부하(동시 회로 수)
+- **선택 기준:** “동시접속 숫자”가 아니라 **보안·서버 상태·운영 모델**로 고름
+
+**Interactive에서 의미 있는 기능:** `<Virtualize>`, `@bind` / `@bind-Value`, `NavigationLock` 등
+
+### 3. Interactive WebAssembly (`InteractiveWebAssembly`)
+
+- **실행:** 브라우저(.NET WASM)
+- **프리렌더:** 기본이 **ON인 경우가 많음** (모드가 “강제 유발”이 아니라 **옵션 기본값**). `prerender: false`로 가능
+- **DI:** Host(프리렌더·서버 쪽)와 Client(브라우저) **양쪽에 필요한 서비스 등록**이 흔한 패턴
+- **선택 이유:** 서버 UI 회로 부담 ↓, 오프라인/클라 연산, API만 호출하는 구조  
+  ❌ “동접 > 1000이라서”, ❌ “보안이 약해서/낮아서”
+
+| 항목 | Interactive Server | Interactive WASM |
+| --- | --- | --- |
+| **데이터** | 서버에서 DB/서비스 가능 (컴포넌트 직접 DbContext는 비권장) | **API/`HttpClient`만** (브라우저에서 DB 불가) |
+| **비밀** | 서버에 두기 용이 | 클라에 심지 말 것 → API 인증 |
+| **UI 전송** | SignalR 회로 | 다운로드 후 로컬 실행 (API 왕복은 별개) |
+| **인증(전형)** | 쿠키/회로 연계 등 서버 중심 | 브라우저 토큰 저장(JWT 등) + API — XSS 주의 |
+| **DI 등록** | Host 중심 | Host + Client |
+
+```csharp
+// WASM: DB 직접 ❌ → API ✅
+return await http.GetFromJsonAsync<List<Server>>("/api/servers");
+```
+
+### 4. Interactive Auto
+
+- **초기:** 대개 **Server interactivity**로 빠르게 시작
+- **이후:** WASM 다운로드되면 **WASM으로 전환** 가능
+- Host/Client DI·상태·프리렌더를 **양쪽 전제**로 설계
+
+---
+
+## Routing & Layout
+
+### `@page` / 라우트 파라미터
+
+```razor
+@page "/servers"
+@page "/servers/back_from/{cityName}"
+@page "/servers/{id:int}"
+@page "/server/{id:int?}"
+```
+
+```csharp
+[Parameter] public string? CityName { get; set; }
+[Parameter] public int? Id { get; set; }
+```
+
+- 경로 제약을 붙이면 매칭·타입이 안전해짐: `int`, `guid`, `datetime`, `*` 등
+- 같은 페이지에 `@page`를 **여러 개** 둘 수 있음
+- 쿼리는 `[SupplyParameterFromQuery]`, 경로는 `[Parameter]` + `@page` 템플릿
+
+### 레이아웃 (`@layout` / `@Body`)
+
+```razor
+@* MainLayout.razor — 이 레포 ServerManagement/Components/Layout *@
+@inherits LayoutComponentBase
+<div class="page">
+    <NavMenu />
+    <article>@Body</article>
+</div>
+```
+
+```razor
+@* 페이지에서 (기본 레이아웃이 아니면) *@
+@layout MainLayout
+@page "/dashboard"
+```
+
+페이지 내용이 레이아웃의 `@Body` 자리에 삽입됨. React `<Outlet />` / Angular 부모 `router-outlet`에 가깝음.
+
+### `Routes` / `NavLink` / `PageTitle` / `FocusOnNavigate`
+
+```razor
+@* Routes.razor 요지 *@
+<Router AppAssembly="...">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+</Router>
+```
+
+```razor
+<NavLink href="/servers" Match="NavLinkMatch.Prefix">Servers</NavLink>
+<PageTitle>Servers</PageTitle>
+```
+
+- `NavLink`: 활성 라우트에 CSS 클래스
+- `PageTitle`: 브라우저 탭 제목
+- `FocusOnNavigate`: 이동 후 포커스(접근성)
+
+---
+
+## Component Features
 
 ### Arbitrary Attributes
 
-**개념:** React의 `...rest props`와 유사 - 유연한 파라미터 전달
+React `...rest`와 유사.
 
 ```razor
-<div class="input-group mb-3 input-width" @attributes=OtherAttributes>
-    <!-- 추가 속성 적용 -->
-</div>
+<div class="input-group" @attributes="OtherAttributes"></div>
 
 @code {
     [Parameter(CaptureUnmatchedValues = true)]
@@ -90,52 +135,35 @@ public class ServerApiService : IServerService {
 }
 ```
 
-**사용 예시:**
+### @bind / @bind-Value
+
+**조건:** **Interactive** 모드 (Server / WASM / Auto). 정적 SSR만으로는 이벤트 기반 양방향 바인딩 불가.
+
+내부적으로 `Value` + `ValueChanged` + `ValueExpression` 연결.
 
 ```razor
-<MyComponent placeholder="검색..." aria-label="검색" data-test="search-box" />
-```
-
----
-
-### @bind / @bind-Value (Two-way Binding)
-
-**조건:** InteractiveServer 또는 InteractiveWebAssembly에서만 작동
-
-**내부 메커니즘:** 3개 파라미터 자동 연결
-
-- `Value="..."` - 현재 값
-- `ValueChanged="..."` - 값 변경 핸들러
-- `ValueExpression="..."` - 식 추적
-
-**사용법:**
-
-```razor
-<!-- HTML 표준 요소 (@bind 사용) -->
 <input @bind="serverName" />
-<textarea @bind="description"></textarea>
-<select @bind="selectedCity">
-    <option value="toronto">Toronto</option>
-</select>
-
-<!-- Blazor 컴포넌트 (@bind-Value 사용) -->
 <InputText @bind-Value="server.Name" />
-<InputNumber @bind-Value="server.Port" />
 
-<!-- 실시간 반응성 (매 입력마다 업데이트) -->
-<input @bind-value="searchText" @bind-value:event="oninput" />
+<!-- 입력마다 갱신 -->
+<input @bind="searchText" @bind:event="oninput" />
+<!-- 또는 컴포넌트 -->
+<InputText @bind-Value="searchText" @bind-Value:event="oninput" />
 ```
 
----
+- HTML 요소: `@bind` / `@bind:event`
+- `InputText` 등: `@bind-Value`
+
+```razor
+@* 세부: get/set/after (Interactive) *@
+<input @bind:get="name" @bind:set="OnNameSet" @bind:after="OnNameChanged" />
+```
 
 ### Cascading Parameters
 
-**개념:** 부모에서 자식 트리 전체로 데이터 공유
-
 ```razor
-<!-- 부모: Pages/Servers.razor -->
 <CascadingValue Value="@selectedCity" Name="SelectedCity">
-    <MainLayout />
+    <ChildTree />
 </CascadingValue>
 
 @code {
@@ -143,627 +171,568 @@ public class ServerApiService : IServerService {
 }
 ```
 
-```razor
-<!-- 자식 (손자, 증손자 포함): ServerComponent.razor -->
+```csharp
 [CascadingParameter(Name = "SelectedCity")]
-public string SelectedCity { get; set; }
+public string? SelectedCity { get; set; }
 ```
 
-**제한사항:**
-
-- ❌ Render Mode 경계를 넘을 수 없음 → DI 사용해야 함
-- ✅ 모든 깊이의 자식에 전파됨 (직접 자식뿐만 아니라)
-
----
+- `Name`을 쓰면 수신 쪽도 **`Name`을 맞춰야** 함
+- **Render mode 경계를 넘지 못함** → 경계 너머는 **DI**
+- 같은 트리·같은 모드 안에서는 깊이 제한 없이 전파
 
 ### DynamicComponent
 
-**개념:** 런타임에 표시할 컴포넌트 동적 결정
+```razor
+@code {
+    private Type? componentType;
+    private Dictionary<string, object>? parameters;
+
+    void SelectComponent(bool isAdmin)
+    {
+        componentType = isAdmin ? typeof(AdminPanel) : typeof(UserPanel);
+        parameters = new() { ["UserId"] = userId };
+    }
+}
+
+<DynamicComponent Type="@componentType" Parameters="@parameters" />
+```
+
+런타임 타입 선택. **코드 스플리팅(lazy assembly)과는 별개**.
+
+### EditForm
+
+모든 렌더 모드에서 사용 가능. 정적 SSR에서는 `[SupplyParameterFromForm]`과 함께 쓰는 패턴이 중요.
 
 ```csharp
-@code {
-    private Type componentType;
-    private Dictionary<string, object> parameters;
+public class Server
+{
+    [Required(ErrorMessage = "서버명은 필수입니다")]
+    [StringLength(50, MinimumLength = 3)]
+    public string Name { get; set; } = "";
 
-    private void SelectComponent(bool isAdmin) {
-        if (isAdmin) {
-            componentType = typeof(AdminPanel);
-        } else {
-            componentType = typeof(UserPanel);
-        }
-
-        parameters = new() { { "UserId", userId } };
-    }
+    [Range(1, 65535)]
+    public int Port { get; set; }
 }
 ```
 
 ```razor
-<DynamicComponent Type="@componentType" Parameters="@parameters" />
-```
-
-**사용 사례:**
-
-- 사용자 권한에 따라 다른 컴포넌트 표시
-- 플러그인 시스템
-- 동적 폼 레이아웃
-
----
-
-### EditForm (Form Processing)
-
-**작동:** 모든 Render Mode에서 작동
-
-**검증 메커니즘:**
-
-```razor
 <EditForm Model="@server" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="HandleInvalidSubmit">
-    <!-- 1단계: 검증 규칙 활성화 -->
     <DataAnnotationsValidator />
-
-    <!-- 2단계: 전체 에러 표시 -->
     <ValidationSummary />
-
-    <!-- 3단계: 필드별 에러 표시 -->
     <InputText @bind-Value="server.Name" />
     <ValidationMessage For="@(() => server.Name)" />
-
+    <InputNumber @bind-Value="server.Port" />
     <button type="submit">저장</button>
 </EditForm>
 
 @code {
     private Server server = new();
 
-    // ✅ 검증 성공 - DB 저장
-    private void HandleValidSubmit() {
-        ServerService.Save(server);
-    }
-
-    // ❌ 검증 실패 - 에러 표시만 (저장 안 함)
-    private void HandleInvalidSubmit() {
-        Console.WriteLine("입력값 검증 실패!");
-    }
+    void HandleValidSubmit() => ServerService.Save(server);
+    void HandleInvalidSubmit() { /* 검증 실패 — 저장 안 함 */ }
 }
 ```
 
-**Model Validation (DataAnnotations):**
+### EventCallback
 
-```csharp
-public class Server {
-    [Required(ErrorMessage = "서버명은 필수입니다")]
-    [StringLength(50, MinimumLength = 3)]
-    public string Name { get; set; }
-
-    [Range(1, 65535, ErrorMessage = "포트는 1-65535 사이여야 합니다")]
-    public int Port { get; set; }
-}
-```
-
----
-
-### EventCallback Parameter
-
-**개념:** 자식에서 부모로 이벤트 알림 (React의 콜백, Angular의 @Output)
+Angular `@Output`, React 콜백 props와 유사.
 
 ```razor
-<!-- 부모: ServerListComponent.razor -->
-<ServerComponent OnDelete="HandleDelete" />
-
+@* 부모 *@
+<ServerCard OnDelete="HandleDelete" />
 @code {
-    private void HandleDelete(int serverId) {
-        Console.WriteLine($"삭제: {serverId}");
-    }
+    void HandleDelete(int id) => Console.WriteLine($"삭제: {id}");
 }
 ```
 
 ```razor
-<!-- 자식: ServerComponent.razor -->
-[Parameter]
-public EventCallback<int> OnDelete { get; set; }
-
+@* 자식 ServerCard *@
+[Parameter] public EventCallback<int> OnDelete { get; set; }
 <button @onclick="() => OnDelete.InvokeAsync(Server.Id)">삭제</button>
 ```
 
----
-
 ### @inherits
 
-**개념:** Razor 컴포넌트가 C# 클래스에서 상속
-
 ```csharp
-// Base.cs
-public class ServerComponentBase : ComponentBase {
+public class ServerComponentBase : ComponentBase
+{
     protected List<Server> servers = new();
-
-    protected virtual async Task LoadServersAsync() {
-        // 공통 로직
-    }
+    protected virtual Task LoadServersAsync() => Task.CompletedTask;
 }
 ```
 
 ```razor
-<!-- ServerComponent.razor -->
 @inherits ServerComponentBase
-
-<div>
-    @foreach (var server in servers) {
-        <div>@server.Name</div>
-    }
-</div>
+@foreach (var s in servers) { <div>@s.Name</div> }
 ```
+
+### 인증 UI (요약)
+
+- 페이지: `@attribute [Authorize]` + `AuthorizeRouteView`
+- UI 조각: `AuthorizeView` (역할/정책)
+- 진입 차단 vs 화면 일부 표시를 구분
+
+### ErrorBoundary
+
+Interactive에서 자식 **렌더** 예외 경계. 모든 비동기/이벤트 예외를 막지는 않음.
 
 ---
 
-## 🌐 JavaScript Interop (Blazor에서 JavaScript 이용하기)
+## JavaScript Interop (요약)
 
-### 0️⃣ Node.js Package 로드하기 (필요시)
+상세·Chart.js → `NODE_JS_PACKAGES_GUIDE.md` / 타이밍 → `BLAZOR_RENDERING_GUIDE.md`
 
-**3가지 방식:**
+1. 스크립트: CDN(개발) / `wwwroot`(프로덕션 권장) / NPM+번들(선택)
+2. collocated `*.razor.js` + `export`
+3. `@inject IJSRuntime` → `OnAfterRenderAsync`에서 `import` → `InvokeAsync`
+4. `IJSObjectReference`는 **`IAsyncDisposable`로 해제**
+5. 예외·로깅 필수
 
-| 방식           | 용도     | 상황                       |
-| -------------- | -------- | -------------------------- |
-| **CDN 방식**   | 개발용   | ✅ 패키지 1-2개만 필요     |
-| **로컬 배치**  | 프로덕션 | 👍 권장 - 패키지 소수      |
-| **NPM + 빌드** | 자동화   | 💡 많은 패키지 존재할 경우 |
+---
 
-### 1️⃣ JavaScript 작성 (xxxx.razor.js)
+## Lifecycle & Rendering (요약)
 
-```javascript
-// 패키지 기능 접근 (CDN으로 로드된 글로벌 변수)
-export function createChart(canvas, data) {
-  const ctx = canvas.getContext("2d");
-  return new Chart(ctx, {
-    // ← 글로벌 Chart 변수
-    type: "doughnut",
-    data: data
-  });
-}
+### 라이프사이클 훅 (순서)
 
-// 커스텀 함수 (localStorage, DOM 조작 등)
-export function saveToLocalStorage(key, value) {
-  localStorage.setItem(key, value);
-}
+| 훅 | 언제 | 전형 용도 |
+| --- | --- | --- |
+| `SetParametersAsync` | 파라미터 적용 | 고급 커스텀 |
+| `OnInitialized[Async]` | 첫 생성 후 1회(프리렌더 시 2회 가능) | 데이터 로드 |
+| `OnParametersSet[Async]` | 파라미터 바뀔 때마다 | 라우트 id 변경 대응 |
+| Render | 마크업 생성 | — |
+| `OnAfterRender[Async]` | DOM 반영 후 | **JS interop**, `@ref` DOM |
+| `Dispose` / `DisposeAsync` | 제거 시 | 구독·타이머·JS 모듈 해제 |
 
-export function getFromLocalStorage(key) {
-  return localStorage.getItem(key);
+```csharp
+protected override async Task OnParametersSetAsync()
+{
+    // /servers/{id} 가 바뀌면 여기가 다시 돈다
+    server = await ServerService.GetAsync(Id);
 }
 ```
 
-### 2️⃣ Blazor에서 JavaScript 호출
+### IDisposable / IAsyncDisposable
 
-```csharp
-@inject IJSRuntime JS
+```razor
+@implements IDisposable
+@implements IAsyncDisposable
 
 @code {
-    protected override async Task OnAfterRenderAsync(bool firstRender) {
-        if (firstRender) {
-            try {
-                // 1. 모듈 로드 (import)
-                var module = await JS.InvokeAsync<IJSObjectReference>(
-                    "import",
-                    "./Components/Controls/ServerChartComponent.razor.js"
-                );
+    public void Dispose()
+    {
+        AppState.OnChange -= StateHasChanged; // 이벤트 구독 해제
+    }
 
-                // 2. 함수 호출 (invoke)
-                await module.InvokeAsync(
-                    "createChart",
-                    canvasElement,
-                    chartData
-                );
-
-                // 3. 커스텀 함수 호출
-                var saved = await module.InvokeAsync<string>(
-                    "getFromLocalStorage",
-                    "username"
-                );
-            }
-            catch (JSException ex) {
-                // 에러 처리 (예상치 못한 에러 자주 발생)
-                Logger.LogError($"JS 오류: {ex.Message}");
-            }
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (module is not null)
+        {
+            await module.InvokeVoidAsync("disposeCharts");
+            await module.DisposeAsync();
         }
     }
 }
 ```
 
-### 글로벌 변수명 찾는 방법
-
-**패키지마다 글로벌 변수명이 다릅니다!**
-
-| 패키지    | 글로벌 변수    | 공식 문서                                              |
-| --------- | -------------- | ------------------------------------------------------ |
-| Chart.js  | `Chart`        | https://www.chartjs.org/docs/latest/getting-started/   |
-| jQuery    | `jQuery` / `$` | https://jquery.com/                                    |
-| Bootstrap | `bootstrap`    | https://getbootstrap.com/docs/5.0/getting-started/cdn/ |
-| Three.js  | `THREE`        | https://threejs.org/docs/                              |
-| D3.js     | `d3`           | https://d3js.org/                                      |
-| Lodash    | `_`            | https://lodash.com/                                    |
-
-**찾는 순서:**
-
-1. 패키지 공식 웹사이트 → "Installation" 또는 "Getting Started" 섹션
-2. "CDN" 또는 "Browser" 섹션에서 글로벌 변수명 확인
-3. 예제 코드로 사용법 파악
-4. 불확실하면 브라우저 콘솔: `typeof Chart`로 확인
-
----
-
-## 🔄 Lifecycle & Rendering
+- 동기 정리 → `IDisposable`
+- JS 모듈·비동기 해제 → `IAsyncDisposable` (Chart 컴포넌트 패턴)
 
 ### Pre-rendering
 
-**개념:** 서버에서 먼저 HTML 생성 → 브라우저로 전송 (빠른 초기 로딩 + SEO)
+서버(또는 프리렌더 패스)에서 HTML을 먼저 그림 → SEO·첫 페인트.  
+프리렌더 ON이면 `OnInitialized` / `OnParametersSet` 등이 **두 번** 돌 수 있음 (Server·WASM 공통 이슈).
 
-**부작용 (WebAssembly 모드):**
+**대응:**
 
-```csharp
-// OnInitialized / OnParametersSet / SetParameters 이 2번 실행됨
-// 1회차: 서버에서 (Pre-rendering)
-// 2회차: 클라이언트에서 (Hydration)
-```
-
-**해결 방법:**
-
-**1️⃣ OnAfterRenderAsync + firstRender 체크**
+1. `OnAfterRenderAsync(firstRender)` — **JS/DOM** (프리렌더 패스에서 JS 실패 가능 → 가드)
+2. `prerender: false` — 단순, SEO·첫 HTML은 손해 가능
+3. `PersistentComponentState` — 데이터 중복 로드 완화 (권장 패턴)
 
 ```csharp
-protected override async Task OnAfterRenderAsync(bool firstRender) {
-    if (firstRender) {
-        // 한 번만 실행 (클라이언트에서만)
-        // JavaScript Interop이 필요한 경우 사용
+@inject PersistentComponentState ApplicationState
+
+protected override async Task OnInitializedAsync()
+{
+    if (!ApplicationState.TryTakeFromJson<List<Server>>("servers", out var saved) || saved is null)
+    {
+        servers = await ServerService.GetServersAsync();
+        ApplicationState.PersistAsJson("servers", servers);
+    }
+    else
+    {
+        servers = saved; // 이미 Persist된 값 재사용
     }
 }
 ```
 
-**2️⃣ Pre-rendering 비활성화**
+상세 타임라인 → `BLAZOR_RENDERING_GUIDE.md`
+
+### @ref
+
+부모 → 자식 **public 메서드**. React `useRef` / Angular `ViewChild`에 가깝음.  
+DOM 고급 조작은 `ElementReference` + **JS interop**.
 
 ```razor
-@rendermode InteractiveServer(prerender: false)
-```
-
-**3️⃣ PersistentComponentState 사용 (권장)**
-
-```csharp
-// 서버: 1회차에서 결과 저장
-ApplicationState.PersistAsJson("servers", servers);
-
-// 클라이언트: 2회차에서 저장된 값 재사용
-if (!ApplicationState.TryTakeAsJson<List<Server>>("servers", out var savedServers)) {
-    servers = await ServerService.GetServersAsync();  // 서버: DB 접근
-} else {
-    servers = savedServers;  // 클라이언트: 캐시된 값 사용
-}
-```
-
----
-
-### @ref (Child Reference)
-
-**개념:** 부모에서 자식 컴포넌트의 public 메서드 호출 (React의 `useRef`, Angular의 `ViewChild`)
-
-```razor
-<!-- 부모 -->
-<SearchBarComponent @ref="searchBar" />
-<button @onclick="ClearSearch">검색 초기화</button>
+<SearchBar @ref="searchBar" />
+<button @onclick="() => searchBar?.ClearFilter()">초기화</button>
 
 @code {
-    private SearchBarComponent searchBar;
-
-    private void ClearSearch() {
-        searchBar?.ClearFilter();  // 자식의 public 메서드 호출
-    }
+    private SearchBar? searchBar;
 }
 ```
-
-```razor
-<!-- 자식: SearchBarComponent -->
-public void ClearFilter() {
-    searchText = "";
-    // 필터 초기화 로직
-}
-```
-
-**여러 ref 관리:**
 
 ```csharp
-private Dictionary<int, RowComponent> rows = new();
-
-<RowComponent @ref="rows[item.Id]" Item="@item" />
+// SearchBar.razor
+public void ClearFilter() => searchText = "";
 ```
 
----
-
-### @rendermode 지시문
+### @rendermode
 
 ```razor
-<!-- 컴포넌트 레벨 설정 -->
 @rendermode InteractiveServer
-
-<!-- Pre-rendering 비활성화 -->
-@rendermode InteractiveServer(prerender: false)
-
-<!-- WebAssembly -->
 @rendermode InteractiveWebAssembly
-
-<!-- App.razor에서 전역 설정 -->
-@rendermode InteractiveServer
+@rendermode InteractiveAuto
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 ```
 
----
+전역은 라우트 골격(`Routes`/`App`)에서 기본 모드 지정하는 패턴이 흔함.
 
-### StateHasChanged() (Render Forcing)
+### StateHasChanged / InvokeAsync
 
-**개념:** Blazor가 변경을 감지하지 못할 때 수동으로 렌더링 요청
+Blazor가 자동 감지하지 못할 때(백그라운드 작업 등) UI 갱신.
 
 ```csharp
-protected override async Task OnAfterRenderAsync(bool firstRender) {
-    if (firstRender) {
-        message = "Updated";
-        StateHasChanged();  // 렌더링 강제
-    }
-}
-
-// 백그라운드 스레드에서 상태 업데이트
-await Task.Run(() => {
-    message = "Updated from background";
-    InvokeAsync(StateHasChanged);  // 반드시 InvokeAsync 사용
-});
+await InvokeAsync(StateHasChanged);
+// 또는
+await InvokeAsync(() => { message = "..."; });
 ```
 
-⚠️ **주의:** OnInitialized()에서 사용하면 무한 루프 발생 가능
+⚠️ **무한 루프 주의:** 조건 없는 `OnAfterRender` + `StateHasChanged`.  
+`OnInitialized`에서 한 번 호출한다고 바로 무한 루프가 나는 것은 아님.
+
+### ShouldRender
+
+불필요한 재렌더를 줄이려 할 때 override. 병목일 때만.
+
+### CSS isolation
+
+```
+ServerComponent.razor
+ServerComponent.razor.css   ← 이 컴포넌트에만 스코프된 CSS
+```
+
+빌드가 선택자에 스코프 속성을 붙여 다른 컴포넌트로 새는 것을 줄임. 전역은 `wwwroot` CSS.
+
+### MarkupString (XSS 주의)
+
+```razor
+@((MarkupString)html)
+```
+
+인코딩을 **우회**함. React `dangerouslySetInnerHTML`과 같음. **sanitize 아님** — 신뢰 가능한 HTML만.
+
+### InputFile
+
+```razor
+<InputFile OnChange="OnFileChange" />
+@code {
+    async Task OnFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        await using var stream = file.OpenReadStream(maxAllowedSize: 1024 * 1024);
+        // 업로드 처리
+    }
+}
+```
+
+Interactive에서 파일 선택·스트림 읽기.
 
 ---
 
-## 🎨 Component Patterns
+## Component Patterns
 
-### RenderFragment (Templated Component)
+### RenderFragment
 
-**개념:** React의 `children props`, Vue의 `slot`과 유사
-
-**기본 사용:**
+자식 마크업 / named 슬롯. React children·Angular ng-content에 대응.
 
 ```razor
-<!-- 부모 -->
-<CardComponent>
+@* 기본 슬롯 *@
+<Card>
     <h2>제목</h2>
     <p>내용</p>
-</CardComponent>
+</Card>
 
-<!-- CardComponent -->
-[Parameter]
-public RenderFragment? ChildContent { get; set; }
-
-<div class="card">
-    @ChildContent
-</div>
+@* Card.razor *@
+[Parameter] public RenderFragment? ChildContent { get; set; }
+<div class="card">@ChildContent</div>
 ```
 
-**제네릭 + Context (RenderFragment<TValue>):**
+```razor
+@* 제네릭 템플릿 *@
+<ListView Items="servers">
+    <ItemTemplate Context="server">
+        <div>@server.Name — @server.City</div>
+    </ItemTemplate>
+</ListView>
+```
 
 ```razor
-<!-- 부모 -->
-<ListComponent Items="@servers">
-    <ItemTemplate Context="server">
-        <div>@server.Name - @server.City</div>
-    </ItemTemplate>
-</ListComponent>
-
-<!-- ListComponent -->
+@* ListView.razor *@
 @typeparam TItem
-
-<div>
-    @foreach (var item in Items) {
-        @ItemTemplate(item)  // Context로 각 아이템 전달
-    }
-</div>
-
+@foreach (var item in Items)
+{
+    @ItemTemplate!(item)
+}
 @code {
-    [Parameter]
-    public List<TItem> Items { get; set; }
-
-    [Parameter]
-    public RenderFragment<TItem> ItemTemplate { get; set; }
+    [Parameter] public List<TItem> Items { get; set; } = new();
+    [Parameter] public RenderFragment<TItem>? ItemTemplate { get; set; }
 }
 ```
 
----
+```razor
+@* named 슬롯 *@
+<Panel>
+    <Header>제목</Header>
+    <Body>본문</Body>
+</Panel>
 
-### State Management
+@* Panel.razor *@
+[Parameter] public RenderFragment? Header { get; set; }
+[Parameter] public RenderFragment? Body { get; set; }
+<div>@Header</div>
+<div>@Body</div>
+```
 
-**전역 상태 관리 (Redux처럼):**
+### State management
 
 ```csharp
 // AppState.cs
-public class AppState {
-    public List<Server> Servers { get; set; } = new();
-    public event Action OnStateChanged;
+public class AppState
+{
+    public List<Server> Servers { get; private set; } = new();
+    public event Action? OnChange;
 
-    public void UpdateServers(List<Server> servers) {
+    public void SetServers(List<Server> servers)
+    {
         Servers = servers;
-        OnStateChanged?.Invoke();
+        OnChange?.Invoke();
     }
 }
 
-// Program.cs
+// Program.cs — Server: Scoped ≈ circuit
 builder.Services.AddScoped<AppState>();
-
-// 사용 컴포넌트
-@inject AppState AppState
-
-@code {
-    protected override void OnInitialized() {
-        AppState.OnStateChanged += StateHasChanged;
-    }
-}
 ```
-
-**부모-자식 상태 전달:**
 
 ```razor
-<!-- @Parameter 또는 @CascadingParameter로 수신 -->
-[Parameter]
-public Server Server { get; set; }
+@inject AppState AppState
+@implements IDisposable
 
-[CascadingParameter]
-public AppState AppState { get; set; }
+@code {
+    protected override void OnInitialized()
+        => AppState.OnChange += StateHasChanged;
+
+    public void Dispose()
+        => AppState.OnChange -= StateHasChanged;
+}
 ```
 
----
+- 트리: `[Parameter]` / `[CascadingParameter]`
+- Singleton에 **사용자별 상태** 넣지 말 것 (Server)
 
-### SynchronizationContext
+### SynchronizationContext (Interactive Server)
 
-**개념:** 서버 스레드와 브라우저 스레드 간 동기화 (Server Interactivity)
+UI 필드는 회로 동기화 컨텍스트에서.
 
 ```csharp
-// ❌ 잘못된 예: UI 상태에 직접 접근
-await Task.Run(() => {
-    message = "Updated";  // ❌ 스레드 불안전
-});
-
-// ✅ 올바른 예: SynchronizationContext 사용
-await Task.Run(() => {
-    var syncContext = SynchronizationContext.Current;
-    syncContext?.Post(_ => {
-        message = "Updated from background";  // ✅ 안전
-        InvokeAsync(StateHasChanged);
-    }, null);
+await InvokeAsync(() =>
+{
+    message = "Updated from background";
 });
 ```
 
+`SynchronizationContext.Post`보다 **`InvokeAsync`를 우선** 기억.
+
 ---
 
-## ⚡ Performance & Lists
+## Performance & Lists
 
 ### Virtualize
 
-**개념:** 보이는 부분만 렌더링 (대량 리스트에 필수)
+Interactive에서만. 보이 영역에 가까운 항목만 렌더.
 
 ```razor
-@if (servers != null) {
-    <Virtualize Items="@servers" Context="server">
-        <div @key="server.Id">  <!-- @key 필수 -->
-            @server.Name
-        </div>
-    </Virtualize>
-}
-
-@code {
-    private List<Server> servers;
-}
+<Virtualize Items="@servers" Context="server">
+    <div @key="server.Id">@server.Name</div>
+</Virtualize>
 ```
 
-**조건:** InteractiveServer 또는 InteractiveWebAssembly에서만 작동
+### @key
 
-### @key 디렉티브
-
-**개념:** 리스트 아이템 추적 (순서 변경 시 상태 보존)
+리스트 정체성. 순서 변경·삭제·Virtualize 시 입력 상태 꼬임 방지.
 
 ```razor
-<!-- ❌ @key 없음: 입력값이 섞임 -->
-@foreach (var item in items) {
-    <input @bind-value="item.Name" />
+@* ❌ key 없음 — 삭제/재정렬 시 입력값이 다른 행으로 섞일 수 있음 *@
+@foreach (var item in items)
+{
+    <input @bind="item.Name" @bind:event="oninput" />
 }
 
-<!-- ✅ @key 있음: ID로 추적 -->
-@foreach (var item in items) {
-    <div @key="item.Id">  <!-- item.Id로 추적 -->
-        <input @bind-value="item.Name" />
+@* ✅ *@
+@foreach (var item in items)
+{
+    <div @key="item.Id">
+        <input @bind="item.Name" @bind:event="oninput" />
     </div>
 }
 ```
 
-**필수 사용 사례:**
-
-- Virtualize 컴포넌트
-- 리스트 순서 변경 가능
-- 동적 리스트 추가/삭제
-
 ---
 
-## 🎯 Event Handling
-
-### @on{event} 문법
+## Event Handling
 
 ```razor
-<!-- 기본 클릭 -->
 <button @onclick="HandleClick">클릭</button>
-
-<!-- preventDefault: 기본 동작 방지 -->
-<form @onsubmit:preventDefault="HandleSubmit">
-    <input type="submit" />
-</form>
-
-<!-- stopPropagation: 이벤트 전파 중단 -->
-<div @onclick="ParentClick">
-    부모
-    <button @onclick:stopPropagation="ChildClick">
-        자식 (부모 클릭 안 됨)
-    </button>
-</div>
-
-<!-- 변경 감지 이벤트 -->
-<input @onchange="HandleChange" />
-<input @onkeypress="HandleKeyPress" />
+<form @onsubmit="HandleSubmit" @onsubmit:preventDefault>
+<button @onclick="ChildClick" @onclick:stopPropagation>
 ```
 
-### Lambda 캡처링 주의
-
-```razor
-<!-- ❌ 잘못된 예: item의 마지막 값만 사용됨 -->
-@foreach (var item in items) {
-    <button @onclick="() => Delete(item)">
-        삭제
-    </button>
-}
-
-<!-- ✅ 올바른 예: 변수에 저장 -->
-@foreach (var item in items) {
-    @{
-        var itemCopy = item;
-    }
-    <button @onclick="() => Delete(itemCopy)">
-        삭제
-    </button>
-}
-```
+최신 C#에서는 `foreach` 람다 캡처가 예전처럼 “마지막 값만” 문제가 되지 않는 경우가 많음. 구버전/혼동 시에만 로컬 복사 패턴을 고려.
 
 ---
 
-## 🔒 Navigation
+## Navigation
+
+### NavigationManager
+
+`NavigateTo`, URI·base URI. 프로그래밍 네비게이션.
+
+```csharp
+NavigationManager.NavigateTo($"/servers/{id}");
+```
 
 ### NavigationLock
 
-**개념:** 페이지 이탈 방지 (폼 변경여부 확인)
+Interactive. 미저장 이탈 방지.
 
 ```razor
 <NavigationLock OnBeforeInternalNavigation="OnBeforeInternalNavigation"
-               ConfirmExternalNavigation="true" />
-
-@code {
-    private async Task OnBeforeInternalNavigation(LocationChangingContext context) {
-        if (hasUnsavedChanges) {
-            context.PreventNavigation();
-            // 경고 표시 또는 저장 처리
-        }
-    }
-}
+                ConfirmExternalNavigation="true" />
 ```
 
 ---
 
-## 📊 DI Lifetime
+## QuickGrid (이 레포 데모)
 
-| 수명          | Blazor SSR | Blazor Server  | Blazor WebAssembly        |
-| ------------- | ---------- | -------------- | ------------------------- |
-| **Transient** | 요청마다   | 호출마다       | 호출마다                  |
-| **Scoped**    | 요청마다   | 연결당 1개 ⭐️ | 없음 (Transient처럼 작동) |
-| **Singleton** | 앱 전체    | 앱 전체        | 앱 전체                   |
+경로: `ServerManagement/Components/Pages/QuickGridDemo.razor` (`/quickgrid`)
 
-**Blazor Server에서 Scoped가 중요한 이유:** 사용자별로 독립적인 상태 유지
+정렬·템플릿 열·페이지네이션이 있는 테이블 UI. **Interactive** 권장.
+
+```razor
+@using Microsoft.AspNetCore.Components.QuickGrid
+@rendermode InteractiveServer
+
+<QuickGrid Items="servers.AsQueryable()" Pagination="paginationState">
+    <PropertyColumn Property="s => s.Name" />
+    <PropertyColumn Property="s => s.City" Sortable="true" />
+    <TemplateColumn Title="Status">
+        @(context.IsOnline ? "Online" : "Offline")
+    </TemplateColumn>
+</QuickGrid>
+<Paginator State="paginationState" />
+
+@code {
+    private List<Server>? servers;
+    private PaginationState paginationState = new() { ItemsPerPage = 5 };
+}
+```
+
+패키지: `Microsoft.AspNetCore.Components.QuickGrid`
 
 ---
 
-## 📞 참고 자료
+## Browser storage (WASM 데모)
 
-- Blazor 공식 문서: https://learn.microsoft.com/blazor
-- Chart.js: https://www.chartjs.org
-- Virtualization: https://learn.microsoft.com/blazor/components/virtualization
+경로: `WebAssemblyDemo.Client/Pages/BrowserStorageStep1.razor`, `Step2`, `ContainerStorage.cs`
+
+페이지 간 값을 넘기는 두 가지 감각:
+
+**1) 이 데모의 `ContainerStorage` (DI 메모리 — 새로고침 시 사라짐)**
+
+```csharp
+// Program.cs (Client)
+builder.Services.AddScoped<ContainerStorage>();
+
+// Step1
+ContainerStorage.SetMessage(data);
+NavigationManager.NavigateTo("/browser_wasm_2");
+
+// Step2 — AfterRender에서 읽은 뒤 StateHasChanged
+data = ContainerStorage.GetMessage();
+```
+
+**2) 실제 브라우저 저장소 (주석 처리된 패턴 / 실무)**
+
+```csharp
+// JS interop
+await JS.InvokeVoidAsync("sessionStorage.setItem", "demo-data", data);
+data = await JS.InvokeAsync<string>("sessionStorage.getItem", "demo-data");
+
+// 또는 Blazor Protected* (암호화·권장 방향)
+// ProtectedSessionStorage / ProtectedLocalStorage
+await sessionStorage.SetAsync("demo-data", data);
+var result = await sessionStorage.GetAsync<string>("demo-data");
+```
+
+- `localStorage` / `sessionStorage`: 새로고침 후에도 유지(정책에 따라)
+- DI `ContainerStorage`: **같은 WASM 앱 세션·Scoped** 안에서의 간단 전달 학습용
+- 민감 정보는 Protected storage 또는 서버 세션 검토
+
+---
+
+## HTTP / 데이터 접근
+
+- `@inject HttpClient` 또는 typed `AddHttpClient<T>()`
+- JWT 등: **`DelegatingHandler`** (클라이언트 가로채기)
+- API 서버 **middleware**와는 다른 층
+- **Server:** DB는 `Repository`/`Service` + DI (이 레포 `IServerService`, EF Repository). 컴포넌트에서 `DbContext` 직접 사용은 비권장
+- **WASM:** API만 (`ServersApiRepository` 패턴)
+
+```csharp
+// Server 쪽 서비스 주입 예
+@inject IServerService ServerService
+servers = ServerService.GetServers();
+```
+
+---
+
+## DI Lifetime
+
+| 수명 | Static SSR (요청) | Interactive Server | Interactive WASM |
+| --- | --- | --- | --- |
+| **Transient** | resolve마다 | resolve마다 | resolve마다 |
+| **Scoped** | ≈ HTTP 요청 | ≈ **SignalR circuit** | ≈ **앱(WebAssembly host) 수명** |
+| **Singleton** | 프로세스 전역 | 프로세스 전역 (사용자 간 공유 주의) | 앱 인스턴스 전역 |
+
+**Server에서 Scoped가 중요한 이유:** 사용자(회로)별 상태 분리. Singleton에 유저 상태 넣으면 섞임.
+
+---
+
+## Parameter 출처 정리
+
+| 출처 | 속성 |
+| --- | --- |
+| 부모 / `@page` 경로 | `[Parameter]` |
+| 쿼리 `?key=val` | `[SupplyParameterFromQuery]` |
+| 정적 SSR 폼 POST | `[SupplyParameterFromForm]` |
+
+---
+
+## 참고
+
+- https://learn.microsoft.com/aspnet/core/blazor
+- https://learn.microsoft.com/aspnet/core/blazor/components/lifecycle
+- https://learn.microsoft.com/aspnet/core/blazor/components/virtualization
+- https://learn.microsoft.com/aspnet/core/blazor/components/state-management
+- https://learn.microsoft.com/aspnet/core/blazor/fundamentals/routing
+- https://learn.microsoft.com/aspnet/core/blazor/components/quickgrid
+- https://learn.microsoft.com/aspnet/core/blazor/js-interop/call-dotnet-from-javascript#browser-storage
