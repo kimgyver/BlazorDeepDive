@@ -292,22 +292,42 @@ Interactive에서 자식 **렌더** 예외 경계. 모든 비동기/이벤트 �
 
 ## Lifecycle & Rendering (요약)
 
-### 라이프사이클 훅 (순서)
+### 라이프사이클 (시간 순서 →)
 
-| 훅 | 언제 | 전형 용도 |
-| --- | --- | --- |
-| `SetParametersAsync` | 파라미터 적용 | 고급 커스텀 |
-| `OnInitialized[Async]` | 첫 생성 후 1회(프리렌더 시 2회 가능) | 데이터 로드 |
-| `OnParametersSet[Async]` | 파라미터 바뀔 때마다 | 라우트 id 변경 대응 |
-| Render | 마크업 생성 | — |
-| `OnAfterRender[Async]` | DOM 반영 후 | **JS interop**, `@ref` DOM |
-| `Dispose` / `DisposeAsync` | 제거 시 | 구독·타이머·JS 모듈 해제 |
+| Construct | Initialise | Receive parameter | Render | Destruct |
+| --- | --- | --- | --- | --- |
+| ctor / `[Inject]`·`@inject` | `OnInitialized[Async]` | `SetParametersAsync` | `ShouldRender` | `Dispose` / `DisposeAsync` |
+| | | `OnParametersSet[Async]` | `OnAfterRender[Async]` | |
+| DI·필드 준비 | 첫 파라미터 후 **1회** 데이터 로드 | 적용 가로채기·억제·전처리 (`base` 필수) | 렌더 **직전** 여부 필터 | 이벤트·리소스·JS 모듈 해제 |
+| | | 반영 후 반응·검증·재조회 | 렌더 **직후** · `firstRender` · JS/`@ref` | |
+
+```
+시간 →  Construct → Initialise → Receive → Render → Destruct
+재진입 →              (최초만)     ←── StateHasChanged / 파라미터·이벤트 ──→
+```
+
+- 칸 안 위→아래도 시간 순. Receive: `SetParametersAsync` → (최초면 Initialise) → `OnParametersSet*`. Render: `ShouldRender` → 마크업 → `OnAfterRender*`.
+- 프리렌더 ON이면 Initialise~Render가 패스당 한 번씩 → 최대 2회.
 
 ```csharp
 protected override async Task OnParametersSetAsync()
 {
     // /servers/{id} 가 바뀌면 여기가 다시 돈다
     server = await ServerService.GetAsync(Id);
+}
+
+protected override async Task SetParametersAsync(ParameterView parameters)
+{
+    if (Locked) return; // OnParametersSet 호출 자체를 막을 때
+    await base.SetParametersAsync(parameters);
+}
+
+protected override bool ShouldRender() => !_suppressRender;
+
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (!firstRender) return;
+    module = await JS.InvokeAsync<IJSObjectReference>("import", "./Chart.razor.js");
 }
 ```
 
@@ -412,7 +432,7 @@ await InvokeAsync(() => { message = "..."; });
 
 ### ShouldRender
 
-불필요한 재렌더를 줄이려 할 때 override. 병목일 때만.
+Render 단계 **직전** 필터. 불필요한 재렌더를 줄이려 할 때만 override(병목일 때). `false`여도 이벤트 핸들러는 실행될 수 있음 — “입력 무시”용이 아님.
 
 ### CSS isolation
 
